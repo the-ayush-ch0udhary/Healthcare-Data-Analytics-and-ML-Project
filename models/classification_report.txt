@@ -1,0 +1,15 @@
+Random Forest Classification Report
+==================================================
+
+Accuracy: 0.8330
+Accuracy Percentage: 83.30%
+
+              precision    recall  f1-score   support
+
+ Complicated       0.66      0.68      0.67       250
+    Deceased       0.70      0.58      0.63       100
+   Recovered       0.92      0.93      0.92       650
+
+    accuracy                           0.83      1000
+   macro avg       0.76      0.73      0.74      1000
+weighted avg       0.83      0.83      0.83      1000

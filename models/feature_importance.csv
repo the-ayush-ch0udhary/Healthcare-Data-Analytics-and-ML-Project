@@ -1,0 +1,20 @@
+Feature,Importance
+numerical__Age,0.3215094584095831
+numerical__Blood Pressure,0.12652960751295086
+numerical__Hemoglobin,0.11743961649817658
+numerical__Blood Sugar,0.10743817170563132
+numerical__Creatinine,0.10681722273211197
+numerical__Vitamin D,0.08038863915447478
+numerical__Cholesterol,0.0766081513484477
+categorical__Gender_M,0.00833224168875021
+categorical__Gender_F,0.008301911760415262
+categorical__DiagnosisID_7,0.006515109733286284
+categorical__DiagnosisID_5,0.004927645473335621
+categorical__DiagnosisID_3,0.004904090455391319
+categorical__DiagnosisID_1,0.004867103509266402
+categorical__DiagnosisID_10,0.004591402632033293
+categorical__DiagnosisID_6,0.004575236495328961
+categorical__DiagnosisID_4,0.0043607513114920235
+categorical__DiagnosisID_8,0.0041327322583966436
+categorical__DiagnosisID_9,0.0039740354655647065
+categorical__DiagnosisID_2,0.0037868718553630935

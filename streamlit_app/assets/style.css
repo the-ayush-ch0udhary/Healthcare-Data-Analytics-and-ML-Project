@@ -1,0 +1,438 @@
+/* ============================================================
+   GLOBAL THEME
+   Variables are injected by utils/theme.py
+   ============================================================ */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
+
+
+/* ============================================================
+   MAIN APP
+   ============================================================ */
+
+.stApp {
+    background: var(--bg-gradient) !important;
+    color: var(--text-primary) !important;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    transition: background 0.5s ease, color 0.4s ease !important;
+}
+
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+
+[data-testid="stSidebar"] {
+    background: var(--sidebar-bg) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border-right: 1px solid var(--sidebar-border) !important;
+    transition: background 0.5s ease, border-color 0.4s ease !important;
+}
+
+
+/* ============================================================
+   CARDS / CONTAINERS
+   ============================================================ */
+
+div[data-testid="stMetric"],
+div[data-testid="stForm"],
+div[data-testid="stHorizontalBlock"] > div,
+.stAlert,
+div[data-testid="stExpander"] {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 16px !important;
+    padding: 18px !important;
+    box-shadow: 0 8px 32px 0 var(--card-shadow) !important;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease,
+        background 0.4s ease !important;
+}
+
+
+/* ============================================================
+   CARD HOVER
+   ============================================================ */
+
+div[data-testid="stMetric"]:hover,
+div[data-testid="stHorizontalBlock"] > div:hover,
+.stAlert:hover,
+div[data-testid="stExpander"]:hover {
+    transform: translateY(-4px) !important;
+    border-color: var(--card-hover-border) !important;
+    box-shadow: 0 14px 40px 0 var(--card-hover-shadow) !important;
+}
+
+
+/* ============================================================
+   BORDERED CONTAINERS
+   ============================================================ */
+
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    border-radius: 16px !important;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease !important;
+}
+
+div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 14px 36px 0 var(--card-hover-shadow) !important;
+    border-color: var(--card-hover-border) !important;
+}
+
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+}
+
+h1 {
+    background: linear-gradient(
+        90deg,
+        var(--heading-start) 0%,
+        var(--heading-end) 100%
+    );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+p,
+span,
+label,
+li {
+    color: var(--text-secondary) !important;
+}
+
+[data-testid="stCaptionContainer"] {
+    color: var(--text-muted) !important;
+}
+
+
+/* ============================================================
+   METRICS
+   ============================================================ */
+
+div[data-testid="stMetricValue"] {
+    font-size: 2rem !important;
+    font-weight: 800 !important;
+    color: var(--metric-value) !important;
+    transition: color 0.4s ease !important;
+}
+
+div[data-testid="stMetricLabel"] {
+    color: var(--metric-label) !important;
+    font-weight: 500 !important;
+}
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.stButton > button,
+.stDownloadButton > button {
+    background: linear-gradient(
+        135deg,
+        var(--button-start) 0%,
+        var(--button-end) 100%
+    ) !important;
+
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid var(--card-border) !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    padding: 0.6rem 1.2rem !important;
+    transition: all 0.25s ease !important;
+}
+
+.stButton > button:hover,
+.stDownloadButton > button:hover {
+    background: linear-gradient(
+        135deg,
+        var(--button-hover-start) 0%,
+        var(--button-hover-end) 100%
+    ) !important;
+
+    box-shadow: 0 0 20px var(--button-hover-glow) !important;
+    border-color: var(--card-hover-border) !important;
+    transform: translateY(-2px) scale(1.01) !important;
+}
+
+
+/* ============================================================
+   PAGE LINKS
+   ============================================================ */
+
+a[data-testid="stPageLink"] {
+    border-radius: 10px !important;
+    padding: 6px 10px !important;
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease !important;
+}
+
+a[data-testid="stPageLink"]:hover {
+    background: var(--card-hover-shadow) !important;
+    transform: translateX(3px) !important;
+}
+
+
+/* ============================================================
+   FORM INPUTS
+   ============================================================ */
+
+/* Outer input containers */
+
+div[data-baseweb="select"] > div,
+div[data-baseweb="input"] > div,
+.stNumberInput > div > div {
+    background: var(--input-bg) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+
+    border: 1px solid var(--input-border) !important;
+    border-radius: 10px !important;
+
+    color: var(--text-primary) !important;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease !important;
+}
+
+
+/* ============================================================
+   ACTUAL NUMBER INPUT TEXT
+   IMPORTANT LIGHT-MODE FIX
+   ============================================================ */
+
+div[data-baseweb="input"] input,
+.stNumberInput input {
+    color: var(--text-primary) !important;
+
+    /* Required for Chromium/WebKit based browsers */
+    -webkit-text-fill-color: var(--text-primary) !important;
+
+    background: transparent !important;
+
+    caret-color: var(--text-primary) !important;
+}
+
+
+/* ============================================================
+   NUMBER INPUT PLACEHOLDER
+   ============================================================ */
+
+div[data-baseweb="input"] input::placeholder,
+.stNumberInput input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 1 !important;
+}
+
+
+/* ============================================================
+   SELECTBOX TEXT
+   ============================================================ */
+
+div[data-baseweb="select"] input,
+div[data-baseweb="select"] span {
+    color: var(--text-primary) !important;
+}
+
+
+/* ============================================================
+   NUMBER INPUT +/- BUTTONS
+   ============================================================ */
+
+.stNumberInput button {
+    color: var(--text-primary) !important;
+    background: transparent !important;
+}
+
+.stNumberInput button:hover {
+    color: var(--heading-start) !important;
+}
+
+
+/* ============================================================
+   INPUT HOVER
+   ============================================================ */
+
+div[data-baseweb="select"] > div:hover,
+div[data-baseweb="input"] > div:hover,
+.stNumberInput > div > div:hover {
+    border-color: var(--card-hover-border) !important;
+}
+
+
+/* ============================================================
+   INPUT FOCUS
+   ============================================================ */
+
+div[data-baseweb="input"] > div:focus-within,
+div[data-baseweb="select"] > div:focus-within,
+.stNumberInput > div > div:focus-within {
+    border-color: var(--card-hover-border) !important;
+
+    box-shadow:
+        0 0 0 2px var(--card-hover-shadow) !important;
+}
+
+
+/* ============================================================
+   SLIDER
+   ============================================================ */
+
+div[data-testid="stSlider"] [role="slider"] {
+    transition: box-shadow 0.2s ease !important;
+}
+
+div[data-testid="stSlider"] [role="slider"]:hover {
+    box-shadow:
+        0 0 0 8px var(--card-hover-shadow) !important;
+}
+
+
+/* ============================================================
+   TABS
+   ============================================================ */
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 6px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: var(--tab-bg) !important;
+    border-radius: 10px 10px 0 0 !important;
+    color: var(--text-secondary) !important;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease !important;
+}
+
+.stTabs [aria-selected="true"] {
+    background: var(--tab-active-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+
+/* ============================================================
+   DATAFRAMES / TABLES
+   ============================================================ */
+
+div[data-testid="stDataFrame"],
+div[data-testid="stTable"] {
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    border: 1px solid var(--card-border) !important;
+}
+
+
+/* ============================================================
+   CODE BLOCKS
+   ============================================================ */
+
+.stCodeBlock,
+pre,
+code {
+    background: var(--code-bg) !important;
+    color: var(--code-text) !important;
+    border-radius: 10px !important;
+}
+
+
+/* ============================================================
+   IMAGES
+   ============================================================ */
+
+div[data-testid="stImage"] img {
+    border-radius: 14px !important;
+    border: 1px solid var(--card-border) !important;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease !important;
+}
+
+div[data-testid="stImage"] img:hover {
+    transform: scale(1.01) !important;
+    box-shadow:
+        0 10px 30px var(--card-shadow) !important;
+}
+
+
+/* ============================================================
+   PROGRESS BARS
+   ============================================================ */
+
+div[data-testid="stProgress"] > div > div {
+    background: linear-gradient(
+        90deg,
+        var(--heading-start),
+        var(--heading-end)
+    ) !important;
+}
+
+
+/* ============================================================
+   DIVIDERS
+   ============================================================ */
+
+hr {
+    border-color: var(--divider) !important;
+    margin: 2rem 0 !important;
+}
+
+
+/* Force visible text in all Streamlit number fields */
+input[type="number"] {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    opacity: 1 !important;
+}
+
+[data-testid="stNumberInput"] input[type="number"] {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+}
