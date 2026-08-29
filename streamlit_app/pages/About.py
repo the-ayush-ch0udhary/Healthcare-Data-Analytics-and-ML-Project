@@ -1,716 +1,252 @@
-import streamlit as st
+"""
+About Page & Clinical Reference Guide
+Hospital Patient Analytics Platform
+"""
+
 import sys
 from pathlib import Path
 
+import pandas as pd
+import streamlit as st
 
 # ============================================================
-# PAGE CONFIG
+# PAGE CONFIG & THEME
 # ============================================================
+
+APP_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(APP_DIR))
+
+from utils.theme import (
+    apply_theme,
+    get_model_metadata,
+    load_dataset,
+    render_sidebar,
+)
 
 st.set_page_config(
-    page_title="About",
-    page_icon="🏥",
-    layout="wide"
+    page_title="About & Clinical Reference",
+    page_icon="ℹ️",
+    layout="wide",
 )
-
-
-# ============================================================
-# THEME
-# ============================================================
-
-sys.path.append(
-    str(Path(__file__).resolve().parent.parent)
-)
-
-
-from utils.theme import apply_theme, render_sidebar
 
 apply_theme()
 
+BASE_DIR = APP_DIR.parent
+df = load_dataset()
+meta = get_model_metadata()
+
 render_sidebar(
-    total_patients=5000,
-    model_accuracy="83.3%",
-    total_diagnoses=10
+    total_patients=len(df) if not df.empty else meta.get("dataset_total", 5000),
+    model_accuracy=meta.get("accuracy_pct", "83.30%"),
+    total_diagnoses=df["DiagnosisName"].nunique() if not df.empty else 10,
 )
 
 # ============================================================
 # HERO HEADER
 # ============================================================
 
-left, right = st.columns(
-    [3, 1]
-)
+left, right = st.columns([3, 1])
 
 with left:
-
-    st.title(
-        "🏥 Hospital Patient Analytics"
-    )
-
+    st.title("🏥 About Hospital Patient Analytics")
     st.markdown(
         """
-        ## Healthcare Data Analytics & Machine Learning Platform
-
-        Transforming hospital data into meaningful insights through
-        interactive dashboards, exploratory data analysis and
-        predictive machine learning.
-
-        This project demonstrates an end-to-end Healthcare Analytics
-        solution using Python, Pandas, Scikit-learn, Plotly and Streamlit.
+        ### AI-Powered Healthcare Intelligence & Clinical Decision Support System
+        
+        The **Hospital Patient Analytics** platform is an end-to-end data analytics and machine learning solution designed to unlock actionable insights from inpatient hospital records, evaluate clinical biomarker trends, and predict patient discharge outcomes (*Recovered, Complicated, Deceased*).
         """
     )
-
 
 with right:
-
     st.info(
-        """
-        ### 📌 Project
-
-        🏥 Healthcare Analytics
-
-        📊 Data Analytics
-
-        🤖 Machine Learning
-
-        🖥 Interactive Dashboard
-
-        ✅ Version 1.0
+        f"""
+        ### 📌 Platform Stats
+        👥 **Patients:** {len(df) if not df.empty else 5000:,}
+        
+        🩺 **Diagnoses:** {df['DiagnosisName'].nunique() if not df.empty else 10}
+        
+        🎯 **Accuracy:** {meta.get('accuracy_pct', '83.30%')}
+        
+        🚀 **Version:** 2.0
         """
     )
 
-
 st.divider()
 
-
 # ============================================================
-# PROJECT STATISTICS
+# CLINICAL REFERENCE RANGES TABLE
 # ============================================================
 
-st.markdown(
-    "## 📊 Project Statistics"
+st.markdown("## 🧪 Clinical Biomarker Reference Guide")
+st.write(
+    "Standard clinical laboratory thresholds utilized across the platform for patient assessment and risk stratification:"
 )
 
-c1, c2, c3, c4 = st.columns(4)
+ref_data = [
+    {
+        "Biomarker": "Blood Pressure (Systolic)",
+        "Unit": "mmHg",
+        "Normal Range": "90 – 120",
+        "Elevated / Warning": "121 – 139",
+        "High / Critical": "≥ 140 (Hypertension)",
+        "Clinical Relevance": "Cardiovascular risk indicator and hemodynamic stability marker.",
+    },
+    {
+        "Biomarker": "Blood Sugar (Fasting)",
+        "Unit": "mg/dL",
+        "Normal Range": "70 – 99",
+        "Elevated / Warning": "100 – 125 (Prediabetes)",
+        "High / Critical": "≥ 126 (Diabetes) / < 70 (Hypoglycemia)",
+        "Clinical Relevance": "Glycemic regulation, diabetic monitoring, and metabolic stress indicator.",
+    },
+    {
+        "Biomarker": "Total Cholesterol",
+        "Unit": "mg/dL",
+        "Normal Range": "< 200 (Desirable)",
+        "Elevated / Warning": "200 – 239 (Borderline)",
+        "High / Critical": "≥ 240 (High)",
+        "Clinical Relevance": "Lipid profiling, atherosclerosis, and long-term coronary disease risk.",
+    },
+    {
+        "Biomarker": "Serum Creatinine",
+        "Unit": "mg/dL",
+        "Normal Range": "0.6 – 1.2",
+        "Elevated / Warning": "1.3 – 1.8",
+        "High / Critical": "≥ 1.9 (Renal Stress / Failure)",
+        "Clinical Relevance": "Renal filtration efficiency, kidney disease staging, and toxicity marker.",
+    },
+    {
+        "Biomarker": "Hemoglobin",
+        "Unit": "g/dL",
+        "Normal Range": "12.0 – 17.5",
+        "Elevated / Warning": "10.0 – 11.9 (Mild Anemia)",
+        "High / Critical": "< 10.0 (Severe Anemia) / > 17.5",
+        "Clinical Relevance": "Oxygen carrying capacity, acute blood loss, and systemic perfusion.",
+    },
+    {
+        "Biomarker": "Vitamin D",
+        "Unit": "ng/mL",
+        "Normal Range": "30 – 100 (Optimal)",
+        "Elevated / Warning": "20 – 29 (Insufficient)",
+        "High / Critical": "< 20 (Deficient)",
+        "Clinical Relevance": "Immune function, bone mineral density, and general metabolic resilience.",
+    },
+]
 
-
-with c1:
-
-    st.metric(
-        "👨‍⚕️ Patients",
-        "5,000"
-    )
-
-
-with c2:
-
-    st.metric(
-        "🩺 Diagnoses",
-        "10"
-    )
-
-
-with c3:
-
-    st.metric(
-        "🎯 Outcomes",
-        "3"
-    )
-
-
-with c4:
-
-    st.metric(
-        "🤖 Model Accuracy",
-        "83.3%"
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# PROJECT HIGHLIGHTS
-# ============================================================
-
-st.markdown(
-    "## ⭐ Project Highlights"
-)
-
-h1, h2, h3 = st.columns(3)
-
-
-with h1:
-
-    st.success(
-        """
-        ### 📊 Analytics
-
-        ✔ Interactive Dashboard
-
-        ✔ Patient Analytics
-
-        ✔ KPI Monitoring
-
-        ✔ Hospital Statistics
-        """
-    )
-
-
-with h2:
-
-    st.info(
-        """
-        ### 🤖 Machine Learning
-
-        ✔ Patient Outcome Prediction
-
-        ✔ Random Forest Classification
-
-        ✔ Model Evaluation
-
-        ✔ Feature Importance Analysis
-        """
-    )
-
-
-with h3:
-
-    st.warning(
-        """
-        ### 🚀 Deployment
-
-        ✔ Streamlit
-
-        ✔ Interactive Charts
-
-        ✔ Responsive UI
-
-        ✔ User-Friendly Interface
-        """
-    )
-
+st.dataframe(pd.DataFrame(ref_data), use_container_width=True, hide_index=True)
 
 st.divider()
 
+# ============================================================
+# SYSTEM ARCHITECTURE & WORKFLOW
+# ============================================================
+
+st.markdown("## 🔄 End-to-End System Workflow")
+
+w1, w2, w3, w4, w5 = st.columns(5)
+
+with w1:
+    with st.container(border=True):
+        st.markdown("### 1. Ingestion")
+        st.write("Patients, Labs, Diagnoses & Outcomes raw CSV datasets.")
+
+with w2:
+    with st.container(border=True):
+        st.markdown("### 2. ETL")
+        st.write("Merging, pivot aggregation, and schema standardization.")
+
+with w3:
+    with st.container(border=True):
+        st.markdown("### 3. Analytics")
+        st.write("Interactive dashboard, correlations, and demographic insights.")
+
+with w4:
+    with st.container(border=True):
+        st.markdown("### 4. ML Pipeline")
+        st.write("Multi-model benchmark, Random Forest champion model training.")
+
+with w5:
+    with st.container(border=True):
+        st.markdown("### 5. Prediction")
+        st.write("Single patient clinical triage and batch CSV inference engine.")
+
+st.divider()
 
 # ============================================================
 # TECHNOLOGY STACK
 # ============================================================
 
-st.markdown(
-    "## 🛠 Technology Stack"
-)
+st.markdown("## 🛠 Technology Stack")
 
-tech1, tech2, tech3 = st.columns(3)
+t1, t2, t3 = st.columns(3)
 
-
-# ------------------------------------------------------------
-# PROGRAMMING & DATA
-# ------------------------------------------------------------
-
-with tech1:
-
+with t1:
     with st.container(border=True):
+        st.markdown("### 🐍 Core & Data Processing")
+        st.write("• **Python 3.10+** - Core programming language")
+        st.write("• **Pandas** - High-performance tabular manipulation")
+        st.write("• **NumPy** - Numerical computing & vectorization")
+        st.write("• **Joblib** - Pipeline serialization & persistence")
 
-        st.markdown("## 🐍")
-
-        st.markdown(
-            "### Programming & Data"
-        )
-
-        st.write("• Python")
-
-        st.write("• Pandas")
-
-        st.write("• NumPy")
-
-        st.write("• Joblib")
-
-        st.write("• Jupyter Notebook")
-
-
-# ------------------------------------------------------------
-# MACHINE LEARNING
-# ------------------------------------------------------------
-
-with tech2:
-
+with t2:
     with st.container(border=True):
+        st.markdown("### 🤖 Machine Learning")
+        st.write("• **Scikit-Learn** - Modeling, Pipelines & Evaluation")
+        st.write("• **Random Forest** - Champion nonlinear classifier")
+        st.write("• **Gradient Boosting & Logistic Regression** - Benchmarks")
+        st.write("• **ColumnTransformer & StandardScaler** - Preprocessing")
 
-        st.markdown("## 🤖")
-
-        st.markdown(
-            "### Machine Learning"
-        )
-
-        st.write("• Scikit-learn")
-
-        st.write("• Random Forest")
-
-        st.write("• Classification")
-
-        st.write("• Feature Importance")
-
-        st.write("• Model Evaluation")
-
-
-# ------------------------------------------------------------
-# VISUALIZATION
-# ------------------------------------------------------------
-
-with tech3:
-
+with t3:
     with st.container(border=True):
-
-        st.markdown("## 📊")
-
-        st.markdown(
-            "### Visualization & UI"
-        )
-
-        st.write("• Streamlit")
-
-        st.write("• Plotly")
-
-        st.write("• Matplotlib")
-
-        st.write("• Seaborn")
-
-        st.write("• CSS")
-
+        st.markdown("### 🖥 Visualization & UI")
+        st.write("• **Streamlit** - Interactive multi-page web platform")
+        st.write("• **Plotly Express** - Dynamic interactive charts")
+        st.write("• **Seaborn & Matplotlib** - Model evaluation charts")
+        st.write("• **Custom CSS** - Dark/Light responsive design system")
 
 st.divider()
 
-
 # ============================================================
-# MACHINE LEARNING MODEL
-# ============================================================
-
-st.markdown(
-    "## 🤖 Machine Learning Model"
-)
-
-model_col1, model_col2 = st.columns(
-    [2, 1]
-)
-
-
-with model_col1:
-
-    st.markdown(
-        """
-        ### Random Forest Classifier
-
-        The platform uses a Random Forest classification model to
-        predict the patient's hospital outcome.
-
-        The model is trained using clinical and demographic features:
-
-        • Age
-
-        • Gender
-
-        • Diagnosis
-
-        • Blood Pressure
-
-        • Blood Sugar
-
-        • Cholesterol
-
-        • Creatinine
-
-        • Hemoglobin
-
-        • Vitamin D
-        """
-    )
-
-
-with model_col2:
-
-    st.metric(
-        "Test Accuracy",
-        "83.3%"
-    )
-
-    st.metric(
-        "Macro F1 Score",
-        "0.74"
-    )
-
-    st.metric(
-        "Test Samples",
-        "1,000"
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# PROJECT WORKFLOW
+# DEVELOPERS & CREDITS
 # ============================================================
 
-st.markdown(
-    "## 🔄 Project Workflow"
-)
-
-step1, step2, step3, step4, step5 = st.columns(5)
-
-
-with step1:
-
-    with st.container(border=True):
-
-        st.markdown("### 📂")
-
-        st.markdown("Dataset")
-
-        st.caption(
-            "Raw Patient Records"
-        )
-
-
-with step2:
-
-    with st.container(border=True):
-
-        st.markdown("### 🧹")
-
-        st.markdown("Cleaning")
-
-        st.caption(
-            "Data Preprocessing"
-        )
-
-
-with step3:
-
-    with st.container(border=True):
-
-        st.markdown("### 📈")
-
-        st.markdown("EDA")
-
-        st.caption(
-            "Exploratory Analysis"
-        )
-
-
-with step4:
-
-    with st.container(border=True):
-
-        st.markdown("### 🤖")
-
-        st.markdown("ML")
-
-        st.caption(
-            "Model Training"
-        )
-
-
-with step5:
-
-    with st.container(border=True):
-
-        st.markdown("### 🚀")
-
-        st.markdown("Deployment")
-
-        st.caption(
-            "Streamlit Application"
-        )
-
-
-st.divider()
-
-
-# ============================================================
-# PROJECT TIMELINE
-# ============================================================
-
-st.markdown(
-    "## 📌 Development Journey"
-)
-
-st.write(
-    "📥 Data Collection"
-)
-
-st.progress(100)
-
-
-st.write(
-    "🧹 Data Cleaning & Preprocessing"
-)
-
-st.progress(100)
-
-
-st.write(
-    "📊 Exploratory Data Analysis"
-)
-
-st.progress(100)
-
-
-st.write(
-    "🤖 Machine Learning"
-)
-
-st.progress(100)
-
-
-st.write(
-    "🚀 Streamlit Deployment"
-)
-
-st.progress(100)
-
-
-st.divider()
-
-
-# ============================================================
-# KEY FEATURES
-# ============================================================
-
-st.markdown(
-    "## ⭐ Key Features"
-)
-
-feature1, feature2, feature3 = st.columns(3)
-
-
-with feature1:
-
-    with st.container(border=True):
-
-        st.markdown(
-            "### 📊 Data Analytics"
-        )
-
-        st.write(
-            "✔ Interactive Dashboard"
-        )
-
-        st.write(
-            "✔ Patient Analytics"
-        )
-
-        st.write(
-            "✔ Hospital KPIs"
-        )
-
-        st.write(
-            "✔ Business Insights"
-        )
-
-
-with feature2:
-
-    with st.container(border=True):
-
-        st.markdown(
-            "### 🤖 Machine Learning"
-        )
-
-        st.write(
-            "✔ Outcome Prediction"
-        )
-
-        st.write(
-            "✔ Random Forest Model"
-        )
-
-        st.write(
-            "✔ Model Evaluation"
-        )
-
-        st.write(
-            "✔ Feature Importance"
-        )
-
-
-with feature3:
-
-    with st.container(border=True):
-
-        st.markdown(
-            "### 📈 Visualization"
-        )
-
-        st.write(
-            "✔ Interactive Charts"
-        )
-
-        st.write(
-            "✔ Plotly Visualizations"
-        )
-
-        st.write(
-            "✔ Responsive Dashboard"
-        )
-
-        st.write(
-            "✔ Light / Dark Theme"
-        )
-
-
-st.divider()
-
-
-# ============================================================
-# FUTURE SCOPE
-# ============================================================
-
-st.markdown(
-    "## 🚀 Future Scope"
-)
-
-future1, future2 = st.columns(2)
-
-
-with future1:
-
-    st.success(
-        """
-        ### Future Enhancements
-
-        • Larger Healthcare Dataset
-
-        • Real Hospital Records
-
-        • Explainable AI (XAI)
-
-        • Cloud Deployment
-
-        • Advanced Model Optimization
-        """
-    )
-
-
-with future2:
-
-    st.info(
-        """
-        ### Possible Extensions
-
-        • Doctor Dashboard
-
-        • Patient Portal
-
-        • REST API Integration
-
-        • Mobile Application
-
-        • Real-Time Prediction
-        """
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# DEVELOPERS
-# ============================================================
-
-st.markdown(
-    "## 👨‍💻 Developers"
-)
+st.markdown("## 👨‍💻 Project Development Team")
 
 dev1, dev2 = st.columns(2)
 
-
 with dev1:
-
     with st.container(border=True):
-
-        st.markdown(
-            "### 👨‍💻 Ayush"
-        )
-
-        st.write(
-            "• Data Analytics"
-        )
-
-        st.write(
-            "• Machine Learning"
-        )
-
-        st.write(
-            "• Streamlit Dashboard"
-        )
-
-        st.write(
-            "• Model Development"
-        )
-
+        st.markdown("### 👨‍💻 Ayush")
+        st.write("• Architecture Design & End-to-End Development")
+        st.write("• Machine Learning Pipeline & Model Benchmarking")
+        st.write("• Interactive Streamlit UI & Design System")
+        st.write("• Predictive Decision Support Integration")
 
 with dev2:
-
     with st.container(border=True):
-
-        st.markdown(
-            "### 👩‍💻 Moon"
-        )
-
-        st.write(
-            "• Data Preparation"
-        )
-
-        st.write(
-            "• Testing"
-        )
-
-        st.write(
-            "• Documentation"
-        )
-
-        st.write(
-            "• Project Support"
-        )
-
-        st.write(
-            "• Model Development"
-        )
-
+        st.markdown("### 👩‍💻 Moon")
+        st.write("• Data Preprocessing Pipeline & Verification")
+        st.write("• Exploratory Data Analysis & Clinical Metrics")
+        st.write("• Documentation & Quality Assurance Testing")
+        st.write("• Analytics Dashboard Design")
 
 st.divider()
 
-
 # ============================================================
-# DISCLAIMER
+# DISCLAIMER & FOOTER
 # ============================================================
 
 st.caption(
     """
-    ⚠️ This project is developed for educational and analytical
-    purposes using synthetic healthcare data. Model predictions
-    should not be used as a substitute for professional medical
-    diagnosis or clinical decision-making.
+    ⚠️ **Disclaimer**: This application is developed for educational, analytical, and clinical decision support demonstration purposes using synthetic patient records.
+    It does not replace professional medical diagnosis or clinical advice.
     """
 )
 
-
-# ============================================================
-# FOOTER
-# ============================================================
-
-st.markdown(
+st.html(
     """
-    <div style="text-align:center; padding:20px 0 5px 0;">
-        <p style="margin:0;">
-            Developed by <strong>Ayush & Moon</strong>
-        </p>
-        <p style="margin:5px 0 0 0; opacity:0.7;">
-            Hospital Patient Analytics • Version 1.0
-        </p>
+    <div style="text-align:center; padding:15px 0 5px 0; color:var(--text-muted); font-size:12px;">
+        Hospital Patient Analytics • Version 2.0 • Ayush &amp; Moon
     </div>
-    """,
-    unsafe_allow_html=True
+    """
 )

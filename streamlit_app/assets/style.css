@@ -1,16 +1,20 @@
 /* ============================================================
-   GLOBAL THEME
-   Variables are injected by utils/theme.py
+   HOSPITAL PATIENT ANALYTICS - DESIGN SYSTEM & STYLESHEET
+   Variables injected dynamically by utils/theme.py
    ============================================================ */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 * {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    box-sizing: border-box;
 }
 
 *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
 }
 
 *::-webkit-scrollbar-track {
@@ -19,7 +23,7 @@
 
 *::-webkit-scrollbar-thumb {
     background: var(--scrollbar-thumb);
-    border-radius: 10px;
+    border-radius: 8px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
@@ -28,14 +32,14 @@
 
 
 /* ============================================================
-   MAIN APP
+   MAIN APPLICATION
    ============================================================ */
 
 .stApp {
     background: var(--bg-gradient) !important;
     color: var(--text-primary) !important;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-    transition: background 0.5s ease, color 0.4s ease !important;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    transition: background 0.4s ease, color 0.3s ease !important;
 }
 
 
@@ -48,78 +52,86 @@
     backdrop-filter: blur(16px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
     border-right: 1px solid var(--sidebar-border) !important;
-    transition: background 0.5s ease, border-color 0.4s ease !important;
+    transition: background 0.4s ease, border-color 0.3s ease !important;
+}
+
+[data-testid="stSidebar"] > div:first-child {
+    padding-top: 1.5rem;
+}
+
+/* ============================================================
+   HIDE DEFAULT STREAMLIT NAVIGATION (PREVENT DUPLICATE NAVBARS)
+   ============================================================ */
+
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarNavItems"],
+[data-testid="stSidebarNavSeparator"],
+nav[data-testid="stSidebarNav"],
+div[data-testid="stSidebarNav"],
+ul[data-testid="stSidebarNavItems"],
+section[data-testid="stSidebar"] div[data-testid="stSidebarNav"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 
+
 /* ============================================================
-   CARDS / CONTAINERS
+   CARDS, METRICS & CONTAINERS
    ============================================================ */
 
 div[data-testid="stMetric"],
 div[data-testid="stForm"],
-div[data-testid="stHorizontalBlock"] > div,
 .stAlert,
 div[data-testid="stExpander"] {
     background: var(--card-bg) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
     border: 1px solid var(--card-border) !important;
     border-radius: 16px !important;
     padding: 18px !important;
-    box-shadow: 0 8px 32px 0 var(--card-shadow) !important;
+    box-shadow: 0 8px 30px 0 var(--card-shadow) !important;
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        border-color 0.25s ease,
-        background 0.4s ease !important;
+        transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.22s ease !important;
 }
-
-
-/* ============================================================
-   CARD HOVER
-   ============================================================ */
 
 div[data-testid="stMetric"]:hover,
-div[data-testid="stHorizontalBlock"] > div:hover,
 .stAlert:hover,
 div[data-testid="stExpander"]:hover {
-    transform: translateY(-4px) !important;
+    transform: translateY(-3px) !important;
     border-color: var(--card-hover-border) !important;
-    box-shadow: 0 14px 40px 0 var(--card-hover-shadow) !important;
+    box-shadow: 0 12px 36px 0 var(--card-hover-shadow) !important;
 }
 
-
-/* ============================================================
-   BORDERED CONTAINERS
-   ============================================================ */
-
 div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
     border-radius: 16px !important;
+    box-shadow: 0 8px 24px 0 var(--card-shadow) !important;
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        border-color 0.25s ease !important;
+        transform 0.22s ease,
+        box-shadow 0.22s ease,
+        border-color 0.22s ease !important;
 }
 
 div[data-testid="stVerticalBlockBorderWrapper"]:hover {
-    transform: translateY(-4px) !important;
-    box-shadow: 0 14px 36px 0 var(--card-hover-shadow) !important;
     border-color: var(--card-hover-border) !important;
+    box-shadow: 0 12px 32px 0 var(--card-hover-shadow) !important;
 }
 
 
 /* ============================================================
-   TYPOGRAPHY
+   TYPOGRAPHY & HEADINGS
    ============================================================ */
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary) !important;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em !important;
 }
@@ -130,15 +142,11 @@ h1 {
         var(--heading-start) 0%,
         var(--heading-end) 100%
     );
-
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-p,
-span,
-label,
-li {
+p, span, label, li {
     color: var(--text-secondary) !important;
 }
 
@@ -148,19 +156,26 @@ li {
 
 
 /* ============================================================
-   METRICS
+   METRIC DISPLAYS
    ============================================================ */
 
 div[data-testid="stMetricValue"] {
-    font-size: 2rem !important;
+    font-size: 1.95rem !important;
     font-weight: 800 !important;
     color: var(--metric-value) !important;
-    transition: color 0.4s ease !important;
+    letter-spacing: -0.03em !important;
 }
 
 div[data-testid="stMetricLabel"] {
     color: var(--metric-label) !important;
-    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+}
+
+div[data-testid="stMetricDelta"] {
+    font-weight: 600 !important;
 }
 
 
@@ -175,14 +190,14 @@ div[data-testid="stMetricLabel"] {
         var(--button-start) 0%,
         var(--button-end) 100%
     ) !important;
-
     backdrop-filter: blur(8px) !important;
     border: 1px solid var(--card-border) !important;
     color: #ffffff !important;
     border-radius: 12px !important;
     font-weight: 600 !important;
-    padding: 0.6rem 1.2rem !important;
-    transition: all 0.25s ease !important;
+    padding: 0.65rem 1.3rem !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.25) !important;
 }
 
 .stButton > button:hover,
@@ -192,20 +207,24 @@ div[data-testid="stMetricLabel"] {
         var(--button-hover-start) 0%,
         var(--button-hover-end) 100%
     ) !important;
-
-    box-shadow: 0 0 20px var(--button-hover-glow) !important;
+    box-shadow: 0 0 24px var(--button-hover-glow) !important;
     border-color: var(--card-hover-border) !important;
-    transform: translateY(-2px) scale(1.01) !important;
+    transform: translateY(-2px) scale(1.008) !important;
+}
+
+.stButton > button:active,
+.stDownloadButton > button:active {
+    transform: translateY(0) scale(0.99) !important;
 }
 
 
 /* ============================================================
-   PAGE LINKS
+   NAVIGATION LINKS
    ============================================================ */
 
 a[data-testid="stPageLink"] {
     border-radius: 10px !important;
-    padding: 6px 10px !important;
+    padding: 8px 12px !important;
     transition:
         background 0.2s ease,
         transform 0.2s ease !important;
@@ -213,76 +232,53 @@ a[data-testid="stPageLink"] {
 
 a[data-testid="stPageLink"]:hover {
     background: var(--card-hover-shadow) !important;
-    transform: translateX(3px) !important;
+    transform: translateX(4px) !important;
 }
 
 
 /* ============================================================
-   FORM INPUTS
+   FORM INPUTS & SELECTS
    ============================================================ */
-
-/* Outer input containers */
 
 div[data-baseweb="select"] > div,
 div[data-baseweb="input"] > div,
-.stNumberInput > div > div {
+.stNumberInput > div > div,
+.stTextInput > div > div {
     background: var(--input-bg) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-
     border: 1px solid var(--input-border) !important;
     border-radius: 10px !important;
-
     color: var(--text-primary) !important;
-
     transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease !important;
 }
 
-
-/* ============================================================
-   ACTUAL NUMBER INPUT TEXT
-   IMPORTANT LIGHT-MODE FIX
-   ============================================================ */
-
+/* Number Input & Text Input text colors (Fixed for Dark & Light modes) */
+input[type="number"],
+input[type="text"],
 div[data-baseweb="input"] input,
-.stNumberInput input {
+div[data-baseweb="base-input"] input,
+.stNumberInput input,
+.stTextInput input {
     color: var(--text-primary) !important;
-
-    /* Required for Chromium/WebKit based browsers */
     -webkit-text-fill-color: var(--text-primary) !important;
-
     background: transparent !important;
-
-    caret-color: var(--text-primary) !important;
+    caret-color: var(--heading-start) !important;
+    font-weight: 500 !important;
 }
-
-
-/* ============================================================
-   NUMBER INPUT PLACEHOLDER
-   ============================================================ */
 
 div[data-baseweb="input"] input::placeholder,
-.stNumberInput input::placeholder {
+.stNumberInput input::placeholder,
+.stTextInput input::placeholder {
     color: var(--text-muted) !important;
-    opacity: 1 !important;
+    opacity: 0.8 !important;
 }
 
-
-/* ============================================================
-   SELECTBOX TEXT
-   ============================================================ */
-
+/* Selectbox Dropdown Menu items */
 div[data-baseweb="select"] input,
 div[data-baseweb="select"] span {
     color: var(--text-primary) !important;
 }
-
-
-/* ============================================================
-   NUMBER INPUT +/- BUTTONS
-   ============================================================ */
 
 .stNumberInput button {
     color: var(--text-primary) !important;
@@ -293,43 +289,33 @@ div[data-baseweb="select"] span {
     color: var(--heading-start) !important;
 }
 
-
-/* ============================================================
-   INPUT HOVER
-   ============================================================ */
-
 div[data-baseweb="select"] > div:hover,
 div[data-baseweb="input"] > div:hover,
-.stNumberInput > div > div:hover {
+.stNumberInput > div > div:hover,
+.stTextInput > div > div:hover {
     border-color: var(--card-hover-border) !important;
 }
-
-
-/* ============================================================
-   INPUT FOCUS
-   ============================================================ */
 
 div[data-baseweb="input"] > div:focus-within,
 div[data-baseweb="select"] > div:focus-within,
-.stNumberInput > div > div:focus-within {
-    border-color: var(--card-hover-border) !important;
-
-    box-shadow:
-        0 0 0 2px var(--card-hover-shadow) !important;
+.stNumberInput > div > div:focus-within,
+.stTextInput > div > div:focus-within {
+    border-color: var(--heading-start) !important;
+    box-shadow: 0 0 0 2px var(--card-hover-shadow) !important;
 }
 
 
 /* ============================================================
-   SLIDER
+   SLIDERS & TOGGLES
    ============================================================ */
 
 div[data-testid="stSlider"] [role="slider"] {
+    background-color: var(--heading-start) !important;
     transition: box-shadow 0.2s ease !important;
 }
 
 div[data-testid="stSlider"] [role="slider"]:hover {
-    box-shadow:
-        0 0 0 8px var(--card-hover-shadow) !important;
+    box-shadow: 0 0 0 8px var(--card-hover-shadow) !important;
 }
 
 
@@ -338,27 +324,35 @@ div[data-testid="stSlider"] [role="slider"]:hover {
    ============================================================ */
 
 .stTabs [data-baseweb="tab-list"] {
-    gap: 6px;
+    gap: 8px;
+    border-bottom: 1px solid var(--divider) !important;
 }
 
 .stTabs [data-baseweb="tab"] {
     background: var(--tab-bg) !important;
     border-radius: 10px 10px 0 0 !important;
     color: var(--text-secondary) !important;
-
+    font-weight: 600 !important;
+    padding: 10px 18px !important;
     transition:
         background 0.2s ease,
         color 0.2s ease !important;
 }
 
+.stTabs [data-baseweb="tab"]:hover {
+    color: var(--text-primary) !important;
+    background: var(--card-hover-shadow) !important;
+}
+
 .stTabs [aria-selected="true"] {
     background: var(--tab-active-bg) !important;
     color: var(--text-primary) !important;
+    border-bottom: 2px solid var(--heading-start) !important;
 }
 
 
 /* ============================================================
-   DATAFRAMES / TABLES
+   DATAFRAMES & TABLES
    ============================================================ */
 
 div[data-testid="stDataFrame"],
@@ -378,40 +372,8 @@ pre,
 code {
     background: var(--code-bg) !important;
     color: var(--code-text) !important;
+    font-family: 'JetBrains Mono', monospace !important;
     border-radius: 10px !important;
-}
-
-
-/* ============================================================
-   IMAGES
-   ============================================================ */
-
-div[data-testid="stImage"] img {
-    border-radius: 14px !important;
-    border: 1px solid var(--card-border) !important;
-
-    transition:
-        transform 0.3s ease,
-        box-shadow 0.3s ease !important;
-}
-
-div[data-testid="stImage"] img:hover {
-    transform: scale(1.01) !important;
-    box-shadow:
-        0 10px 30px var(--card-shadow) !important;
-}
-
-
-/* ============================================================
-   PROGRESS BARS
-   ============================================================ */
-
-div[data-testid="stProgress"] > div > div {
-    background: linear-gradient(
-        90deg,
-        var(--heading-start),
-        var(--heading-end)
-    ) !important;
 }
 
 
@@ -421,18 +383,54 @@ div[data-testid="stProgress"] > div > div {
 
 hr {
     border-color: var(--divider) !important;
-    margin: 2rem 0 !important;
+    margin: 1.8rem 0 !important;
 }
 
 
-/* Force visible text in all Streamlit number fields */
-input[type="number"] {
-    color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
-    opacity: 1 !important;
+/* ============================================================
+   CLINICAL STATUS BADGES & UTILITIES
+   ============================================================ */
+
+.badge-normal {
+    display: inline-block;
+    background: rgba(16, 185, 129, 0.16);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-[data-testid="stNumberInput"] input[type="number"] {
-    color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
+.badge-warning {
+    display: inline-block;
+    background: rgba(245, 158, 11, 0.16);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-danger {
+    display: inline-block;
+    background: rgba(239, 68, 68, 0.16);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-info {
+    display: inline-block;
+    background: rgba(59, 130, 246, 0.16);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
 }

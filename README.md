@@ -1,622 +1,175 @@
-# 🏥 Hospital Patient Analytics
+# 🏥 Hospital Patient Analytics & Outcome Prediction
 
-A healthcare analytics and machine learning project that analyzes patient records, identifies clinical patterns, explores treatment outcomes, and predicts patient outcomes using **Random Forest Classification**.
-
-The project combines **Data Analytics, Exploratory Data Analysis, Machine Learning, and an interactive Streamlit dashboard** into a single healthcare intelligence platform.
+A data analytics and machine learning web application built with Python and Streamlit to analyze inpatient healthcare records, examine clinical biomarkers, audit hospital treatment costs, and predict patient discharge outcomes (**Recovered**, **Complicated**, or **Deceased**).
 
 ---
 
 ## 📌 Project Overview
 
-Healthcare organizations generate large amounts of patient data containing information about demographics, diagnoses, laboratory results, treatment costs, and patient outcomes.
+In healthcare management, understanding inpatient recovery patterns and identifying high-risk cases early can significantly improve hospital resource planning and clinical decision-making. 
 
-This project uses that data to answer practical questions such as:
-
-* How are patients distributed across different outcomes?
-* Which diagnoses are most common?
-* What patterns can be observed in patient health indicators?
-* How do laboratory values vary across patient groups?
-* Which factors contribute most to predicting patient outcomes?
-* Can Machine Learning help predict whether a patient will recover, develop complications, or become deceased?
-
-The project processes raw healthcare datasets, performs data cleaning and exploratory analysis, trains a classification model, evaluates its performance, and presents the results through an interactive Streamlit application.
+This project covers the full end-to-end data science lifecycle:
+1. **Data Pipeline & Preprocessing**: Merging raw patient admissions, diagnostic categories, outcome statuses, and laboratory test results into a structured dataset.
+2. **Exploratory Data Analytics (EDA)**: Interactive visualizations for patient demographics, clinical biomarker correlations, length of stay, and treatment expenses.
+3. **Machine Learning Modeling**: Training and comparing multiple classifiers (*Random Forest, Gradient Boosting, Logistic Regression, Decision Tree*) to predict patient outcomes.
+4. **Interactive Web App**: A multi-page Streamlit application featuring dark/light mode, real-time lab range checks, preset profiles, and batch CSV predictions.
 
 ---
 
-## 🎯 Objectives
+## ✨ Features
 
-The main objectives of this project are:
+### 📊 1. Analytics Dashboard
+- **Patient Demographics**: Age distributions with box plots, gender breakdowns, and outcome ratios.
+- **Biomarker Correlations**: Interactive correlation matrix across all numeric clinical parameters.
+- **Clinical Variations**: Boxplots showing how blood pressure, blood sugar, creatinine, and hemoglobin levels differ by outcome.
+- **Operations & Financials**: Treatment costs and average length of stay across diagnoses.
+- **Searchable Records**: Inpatient data explorer with instant search and filtered CSV export.
 
-1. Clean and prepare healthcare datasets for analysis.
-2. Combine relevant patient, diagnosis, laboratory, and outcome information.
-3. Perform Exploratory Data Analysis (EDA).
-4. Identify important healthcare and patient-level patterns.
-5. Build a Machine Learning model for patient outcome prediction.
-6. Compare and evaluate model performance.
-7. Identify important features influencing predictions.
-8. Develop an interactive healthcare analytics dashboard.
-9. Provide a simple interface for making individual patient outcome predictions.
+### 🤖 2. Outcome Prediction & Clinical Decision Support
+- **Single Patient Prediction**: Input patient vitals and diagnosis to predict the likely discharge outcome with confidence scores.
+- **Clinical Reference Ranges**: Real-time evaluation badges (*Normal, Prehypertension, High, Deficient*) across all 6 lab measurements:
+  - Blood Pressure (`mmHg`)
+  - Blood Sugar (`mg/dL`)
+  - Total Cholesterol (`mg/dL`)
+  - Serum Creatinine (`mg/dL`)
+  - Hemoglobin (`g/dL`)
+  - Vitamin D (`ng/mL`)
+- **Quick Preset Profiles**: Load realistic patient scenarios (*Healthy Routine*, *Cardiovascular High-Risk*, *Diabetic Renal Risk*) with one click.
+- **Batch CSV Upload**: Upload bulk patient records to get instantaneous predictions, triage charts, and downloadable enriched CSVs.
+- **Downloadable Clinical Summary**: Export clean `.txt` summary reports for individual predictions.
+
+### 📈 3. Model Performance & Benchmarking
+- **Champion Model Evaluation**: Accuracy, per-class precision/recall/F1-scores, and support metrics.
+- **Interactive Confusion Matrix**: Heatmap with actual vs. predicted counts and hover details.
+- **Multi-Algorithm Benchmark**: Comparative metrics across 4 machine learning models.
+- **Feature Importance**: Ranked clinical features driving outcome predictions (Age, Blood Pressure, Hemoglobin, and Blood Sugar are top drivers).
+
+### 🌓 4. UI & Theme System
+- One-click toggle between **Dark Mode** and **Light Mode**.
+- Clean glassmorphism styling, responsive layout, and customized charts matching the active theme.
 
 ---
 
-## 🧠 Machine Learning
+## 🔬 Machine Learning Results
 
-The project treats patient outcome prediction as a **multi-class classification problem**.
+We trained models using an **80:20 stratified split** (4,000 training samples, 1,000 test samples) on 9 features (*Age, Gender, Diagnosis, Blood Pressure, Blood Sugar, Cholesterol, Creatinine, Hemoglobin, Vitamin D*).
 
-### Target Variable
+### Model Comparison Table
 
-The target variable is:
+| Algorithm | Test Accuracy | Macro F1-Score | Weighted F1-Score | Training Time |
+| :--- | :---: | :---: | :---: | :---: |
+| **Random Forest (Champion)** | **83.30%** | **0.7431** | **0.8317** | **0.83s** |
+| **Logistic Regression** | 84.60% | 0.7679 | 0.8465 | 0.11s |
+| **Gradient Boosting** | 82.90% | 0.7412 | 0.8285 | 5.10s |
+| **Decision Tree** | 80.00% | 0.7091 | 0.8004 | 0.04s |
 
-```text
-OutcomeName
+*Random Forest was chosen as the champion pipeline for its balanced multi-class performance and ability to model complex nonlinear interactions between age and lab vitals.*
+
+### Class Breakdown (Random Forest)
+- **Recovered**: Precision: `91.8%` | Recall: `92.9%` | F1: `92.4%` (650 test patients)
+- **Complicated**: Precision: `66.0%` | Recall: `68.4%` | F1: `67.2%` (250 test patients)
+- **Deceased**: Precision: `69.9%` | Recall: `58.0%` | F1: `63.4%` (100 test patients)
+
+---
+
+## 🗂 Project Structure
+
 ```
-
-The model predicts one of three possible outcomes:
-
-* **Recovered**
-* **Complicated**
-* **Deceased**
-
-### Features Used
-
-The Machine Learning model uses the following patient and clinical features:
-
-| Feature        | Description                   |
-| -------------- | ----------------------------- |
-| Age            | Patient age                   |
-| Gender         | Patient gender                |
-| DiagnosisID    | Diagnosis category identifier |
-| Blood Pressure | Patient blood pressure        |
-| Blood Sugar    | Blood sugar level             |
-| Cholesterol    | Cholesterol level             |
-| Creatinine     | Creatinine level              |
-| Hemoglobin     | Hemoglobin level              |
-| Vitamin D      | Vitamin D level               |
-
-### Features Removed
-
-Certain fields were excluded from model training because they are identifiers, dates, direct outcome-related information, or variables that could introduce unnecessary information into the prediction process.
-
-These include:
-
-```text
-PatientID
-Name
-AdmissionDate
-DischargeDate
-TreatmentCost
-LengthOfStay
-OutcomeID
-```
-
----
-
-## 🤖 Best Performing Model
-
-The selected model is:
-
-### Random Forest Classifier
-
-The Random Forest model was selected as the best-performing model for the project.
-
-Configuration:
-
-```python
-RandomForestClassifier(
-    n_estimators=300,
-    random_state=42,
-    n_jobs=-1
-)
-```
-
-The complete preprocessing and model are stored together as a Scikit-learn pipeline.
-
-The trained pipeline is saved as:
-
-```text
-models/best_model.pkl
-```
-
----
-
-## 📊 Model Performance
-
-The saved evaluation report shows an overall accuracy of approximately:
-
-### 🎯 83.3%
-
-| Class            | Precision |   Recall | F1-Score |  Support |
-| ---------------- | --------: | -------: | -------: | -------: |
-| Recovered        |      0.92 |     0.93 |     0.92 |      650 |
-| Complicated      |      0.66 |     0.68 |     0.67 |      250 |
-| Deceased         |      0.70 |     0.58 |     0.63 |      100 |
-| **Accuracy**     |           |          | **0.83** | **1000** |
-| **Macro Avg**    |  **0.76** | **0.73** | **0.74** | **1000** |
-| **Weighted Avg** |  **0.83** | **0.83** | **0.83** | **1000** |
-
-### What the results indicate
-
-The model performs particularly well for the **Recovered** class, achieving:
-
-* **92% precision**
-* **93% recall**
-* **92% F1-score**
-
-Performance is lower for the **Complicated** and **Deceased** classes.
-
-This is important because the dataset is imbalanced, with substantially more recovered patients than deceased patients. Therefore, accuracy alone should not be used to judge the model.
-
-The recall of **58% for the Deceased class** indicates that the model misses a meaningful number of deceased cases. For a real healthcare application, this would require further investigation and improvement before the model could be considered suitable for clinical decision-making.
-
-> **Note:** The model is intended for educational and analytical purposes and should not be used as a medical diagnostic or treatment system.
-
----
-
-## 📈 Dataset Distribution
-
-The evaluation dataset contains:
-
-```text
-1,000 test samples
-```
-
-The test-set class distribution is:
-
-| Outcome     | Samples |
-| ----------- | ------: |
-| Recovered   |     650 |
-| Complicated |     250 |
-| Deceased    |     100 |
-
-This imbalance is one reason why precision, recall, and F1-score are included alongside accuracy.
-
----
-
-## 🔍 Feature Importance
-
-Random Forest provides feature importance values that help identify which input variables contribute most to the model's predictions.
-
-The project generates:
-
-```text
-models/feature_importance.csv
-models/feature_importance.png
-```
-
-The feature importance visualization provides an easier way to understand which clinical variables have the greatest influence on the trained model.
-
----
-
-## 📊 Exploratory Data Analysis
-
-The project includes an EDA notebook containing analysis of the healthcare dataset.
-
-The analysis focuses on:
-
-* Patient demographics
-* Diagnosis distribution
-* Patient outcomes
-* Laboratory measurements
-* Treatment costs
-* Length of stay
-* Relationships between clinical variables
-* Outcome-wise comparisons
-* Distribution of numerical variables
-* Correlation analysis
-
-EDA helps identify patterns in the dataset before applying Machine Learning.
-
----
-
-## 🖥️ Interactive Dashboard
-
-The project includes a Streamlit-based web application.
-
-### Dashboard Features
-
-The application provides several modules:
-
-### 📊 Healthcare Dashboard
-
-Provides a high-level overview of the healthcare dataset, including:
-
-* Total patients
-* Diagnosis categories
-* Average treatment cost
-* Patient outcome distribution
-* Recovery rate
-* Complicated case rate
-* Deceased case rate
-* Healthcare trends
-
-### 🤖 Patient Prediction
-
-The prediction module allows users to enter patient information and generate a predicted outcome using the trained Random Forest model.
-
-Input fields include:
-
-* Age
-* Gender
-* Diagnosis
-* Blood Pressure
-* Blood Sugar
-* Cholesterol
-* Creatinine
-* Hemoglobin
-* Vitamin D
-
-The trained pipeline processes the input and returns the predicted patient outcome.
-
-### 📈 Model Performance
-
-The application provides model evaluation information such as:
-
-* Accuracy
-* Classification report
-* Confusion matrix
-* Feature importance
-
-### ℹ️ About
-
-The About section provides information about the project, its purpose, technology stack, and Machine Learning approach.
-
----
-
-## 🗂️ Project Structure
-
-```text
-Hospital-Patient-Analytics/
-│
 ├── data/
-│   ├── raw/
-│   │   ├── diagnoses.csv
-│   │   ├── labs.csv
-│   │   ├── outcomes.csv
-│   │   └── patients.csv
-│   │
+│   ├── raw/                       # Raw CSVs (patients, diagnoses, outcomes, labs)
 │   └── processed/
-│       └── healthcare_cleaned.csv
-│
+│       └── healthcare_cleaned.csv # Cleaned & merged 5,000-record dataset
 ├── models/
-│   ├── best_model.pkl
-│   ├── classification_report.txt
-│   ├── confusion_matrix.png
-│   ├── feature_importance.csv
-│   └── feature_importance.png
-│
+│   ├── best_model.pkl             # Trained scikit-learn pipeline
+│   ├── model_metadata.json        # Dynamic evaluation metrics & hyperparameters
+│   ├── model_comparison.csv       # Multi-algorithm benchmark comparison
+│   ├── feature_importance.csv     # Ranked feature importances
+│   ├── confusion_matrix.png       # Confusion matrix plot
+│   └── classification_report.txt  # Classification report text
 ├── notebooks/
-│   ├── EDA.ipynb
-│   └── ML_process.ipynb
-│
+│   ├── EDA.ipynb                  # Exploratory analysis notebook
+│   └── ML_process.ipynb           # Model development & testing notebook
 ├── src/
-│   └── train_model3.py
-│
+│   ├── data_preprocessing.py      # Automated data cleaning & merging ETL
+│   └── train_model3.py            # Model training & benchmarking pipeline
 ├── streamlit_app/
-│   ├── app.py
-│   │
+│   ├── app.py                     # Main dashboard home page
 │   ├── assets/
-│   │   └── style.css
-│   │
+│   │   └── style.css              # Custom CSS styling (Dark/Light mode support)
 │   ├── pages/
-│   │   ├── About.py
-│   │   ├── Dashboard.py
-│   │   ├── Model_Performance.py
-│   │   └── Predict.py
-│   │
+│   │   ├── About.py               # About & clinical reference guide
+│   │   ├── Dashboard.py           # Inpatient analytics dashboard
+│   │   ├── Model_Performance.py   # Model evaluation & benchmark suite
+│   │   └── Predict.py             # Single & batch outcome prediction engine
 │   └── utils/
-│       └── theme.py
-│
-├── .gitignore
-├── requirements.txt
-└── README.md
+│       └── theme.py               # Theme engine, dynamic loaders & clinical helpers
+├── tests/
+│   ├── test_data_pipeline.py      # Dataset validation tests
+│   ├── test_model_pipeline.py     # Model inference tests
+│   └── test_app_helpers.py        # Clinical status helper tests
+├── requirements.txt               # Project dependencies
+├── run_app.py                     # Application startup script
+└── README.md                      # Project documentation
 ```
 
 ---
 
-## 🔄 Machine Learning Workflow
+## ⚡ Quick Start
 
-The overall workflow of the project is:
-
-```text
-Raw Healthcare Data
-        ↓
-Data Cleaning
-        ↓
-Data Integration
-        ↓
-Exploratory Data Analysis
-        ↓
-Feature Selection
-        ↓
-Train / Test Split
-        ↓
-Data Preprocessing
-        ↓
-Random Forest Classifier
-        ↓
-Model Evaluation
-        ↓
-Feature Importance
-        ↓
-Save Trained Model
-        ↓
-Streamlit Prediction Dashboard
-```
-
----
-
-## ⚙️ Technologies Used
-
-### Programming Language
-
-* Python
-
-### Data Analysis
-
-* Pandas
-* NumPy
-
-### Data Visualization
-
-* Matplotlib
-* Seaborn
-
-### Machine Learning
-
-* Scikit-learn
-* Random Forest Classifier
-
-### Model Management
-
-* Joblib
-
-### Dashboard
-
-* Streamlit
-
-### Development Tools
-
-* Jupyter Notebook
-* Git
-* GitHub
-
----
-
-## 📦 Installation
-
-### 1. Clone the Repository
-
+### 1. Clone the repository & set up environment
 ```bash
-git clone https://github.com/your-username/Hospital-Patient-Analytics.git
+git clone https://github.com/the-ayush-ch0udhary/Healthcare-Data-Analytics-and-ML-Project.git
+cd Healthcare-Data-Analytics-and-ML-Project
 ```
 
-Move into the project directory:
-
-```bash
-cd Hospital-Patient-Analytics
-```
-
----
-
-### 2. Create a Virtual Environment
-
-Windows:
-
-```bash
-python -m venv venv
-```
-
-Activate it:
-
-```bash
-venv\Scripts\activate
-```
-
-For macOS/Linux:
-
-```bash
-python3 -m venv venv
-```
-
-```bash
-source venv/bin/activate
-```
-
----
-
-### 3. Install Dependencies
-
-Install the required packages:
-
+### 2. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-If you want to run only the Streamlit application, you can also install the application requirements:
-
+### 3. (Optional) Run the data pipeline and training
+If you want to re-process data or re-train models from scratch:
 ```bash
-pip install -r streamlit_app/requirements.txt
-```
+# Ingest and clean raw data
+python src/data_preprocessing.py
 
----
-
-## ▶️ Running the Project
-
-### Run the Streamlit Dashboard
-
-From the project root directory:
-
-```bash
-streamlit run streamlit_app/app.py
-```
-
-After starting the application, Streamlit will provide a local URL, usually:
-
-```text
-http://localhost:8501
-```
-
-Open the URL in your browser.
-
----
-
-## 🧪 Running the Machine Learning Pipeline
-
-The model training script is located at:
-
-```text
-src/train_model3.py
-```
-
-Run:
-
-```bash
+# Train models and generate benchmarks
 python src/train_model3.py
 ```
 
-The script:
-
-1. Loads the processed healthcare dataset.
-2. Selects the required features.
-3. Separates numerical and categorical variables.
-4. Performs preprocessing.
-5. Splits the data into training and testing sets.
-6. Trains the Random Forest classifier.
-7. Generates predictions.
-8. Calculates accuracy.
-9. Generates the classification report.
-10. Creates the confusion matrix.
-11. Calculates feature importance.
-12. Saves the trained model.
-
-The generated model and evaluation files are stored inside:
-
-```text
-models/
+### 4. Run tests
+```bash
+python -m unittest discover -s tests -p "test_*.py"
 ```
+
+### 5. Start the web application
+```bash
+python run_app.py
+```
+Or directly with Streamlit:
+```bash
+streamlit run streamlit_app/app.py
+```
+Open **[http://localhost:8501](http://localhost:8501)** in your browser.
 
 ---
 
-## 💾 Saved Model
+## 🛠 Tech Stack
 
-The complete preprocessing and Random Forest pipeline is stored using Joblib:
-
-```text
-models/best_model.pkl
-```
-
-Saving the complete pipeline means that the same preprocessing steps used during training can be applied when making predictions from the Streamlit application.
+- **Language**: Python 3.10+
+- **Data Manipulation**: Pandas, NumPy
+- **Machine Learning**: Scikit-Learn, Joblib
+- **Web App & Visualization**: Streamlit, Plotly Express, Matplotlib, Seaborn
+- **Testing**: Unittest
 
 ---
 
-## 📁 Important Output Files
+## 👥 Authors
 
-| File                        | Purpose                                  |
-| --------------------------- | ---------------------------------------- |
-| `best_model.pkl`            | Trained Random Forest pipeline           |
-| `classification_report.txt` | Precision, recall, F1-score and accuracy |
-| `confusion_matrix.png`      | Visual model error analysis              |
-| `feature_importance.csv`    | Feature importance values                |
-| `feature_importance.png`    | Feature importance visualization         |
+- **Ayush** — System Architecture, ML Pipelines, Streamlit Dashboard & UI Design
+- **Moon** — Data Preprocessing, Exploratory Analysis, QA & Documentation
 
 ---
 
-## 🔬 Model Evaluation
-
-Several evaluation metrics are used instead of relying only on accuracy.
-
-### Accuracy
-
-Measures the overall percentage of correctly classified samples.
-
-```text
-Accuracy = Correct Predictions / Total Predictions
-```
-
-### Precision
-
-Measures how many predicted instances of a class were actually members of that class.
-
-```text
-Precision = True Positives / (True Positives + False Positives)
-```
-
-### Recall
-
-Measures how many actual instances of a class were correctly identified.
-
-```text
-Recall = True Positives / (True Positives + False Negatives)
-```
-
-### F1-Score
-
-The harmonic mean of precision and recall.
-
-```text
-F1 = 2 × (Precision × Recall) / (Precision + Recall)
-```
-
-For healthcare-related classification, recall is particularly important because missing certain outcome cases can have serious consequences.
-
----
-
-## 📚 Notebooks
-
-The project contains two Jupyter notebooks.
-
-### `EDA.ipynb`
-
-Used for:
-
-* Data exploration
-* Data understanding
-* Statistical analysis
-* Visualization
-* Identifying patterns and relationships
-
-### `ML_process.ipynb`
-
-Used for:
-
-* Feature preparation
-* Model development
-* Training
-* Evaluation
-* Machine Learning experimentation
-
----
-
-## 🎓 Project Type
-
-```text
-Academic / Portfolio Project
-```
-
-This project demonstrates practical skills in:
-
-* Python
-* Pandas
-* NumPy
-* Data Cleaning
-* Exploratory Data Analysis
-* Data Visualization
-* Machine Learning
-* Classification
-* Model Evaluation
-* Feature Importance
-* Streamlit
-* Git & GitHub
-
----
-
-## 👨‍💻 Author
-
-**Ayush** & **Moon**
-
-This project was developed as part of a Data Analytics and Machine Learning portfolio.
-
----
-## ⚕️ Disclaimer
-
-This project is created for **educational and demonstration purposes only**.
+## ⚠️ Note
+*This project uses synthetic patient data and is built for educational and analytical purposes. Predictions should not be used as clinical medical advice.*

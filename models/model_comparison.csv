@@ -1,0 +1,5 @@
+Model,Accuracy,Accuracy_Pct,Precision_Macro,Recall_Macro,F1_Macro,F1_Weighted,Training_Time_Sec
+Logistic Regression,0.846,84.60%,0.7709,0.7652,0.7679,0.8463,0.108
+Random Forest,0.833,83.30%,0.759,0.7311,0.7431,0.8317,0.829
+Gradient Boosting,0.829,82.90%,0.7458,0.737,0.7412,0.8287,5.096
+Decision Tree,0.8,80.00%,0.7096,0.7091,0.7091,0.8014,0.043

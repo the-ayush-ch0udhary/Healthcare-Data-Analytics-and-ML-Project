@@ -1,906 +1,496 @@
-import streamlit as st
-import pandas as pd
-import plotly.express as px
+"""
+Hospital Analytics Dashboard
+Comprehensive clinical, demographic, operational, and financial analytics.
+"""
+
 import sys
 from pathlib import Path
 
+import pandas as pd
+import plotly.express as px
+import plotly.figure_factory as ff
+import streamlit as st
 
 # ============================================================
-# PAGE CONFIG
+# PAGE CONFIG & THEME
 # ============================================================
+
+APP_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(APP_DIR))
+
+from utils.theme import (
+    apply_theme,
+    get_model_metadata,
+    load_dataset,
+    plotly_template,
+    render_sidebar,
+)
 
 st.set_page_config(
-    page_title="Hospital Dashboard",
+    page_title="Hospital Analytics Dashboard",
     page_icon="📊",
-    layout="wide"
+    layout="wide",
 )
-
-
-# ============================================================
-# THEME
-# ============================================================
-
-sys.path.append(
-    str(Path(__file__).resolve().parent.parent)
-)
-
-from utils.theme import apply_theme, render_sidebar, plotly_template
 
 apply_theme()
 
-render_sidebar(
-    total_patients=5000,
-    model_accuracy="83.3%",
-    total_diagnoses=10
-)
+# ============================================================
+# DATA INGESTION
+# ============================================================
 
+df = load_dataset()
+meta = get_model_metadata()
+
+if df.empty:
+    st.error("Healthcare dataset could not be loaded. Please ensure data/processed/healthcare_cleaned.csv exists.")
+    st.stop()
+
+render_sidebar(
+    total_patients=len(df),
+    model_accuracy=meta.get("accuracy_pct", "83.30%"),
+    total_diagnoses=df["DiagnosisName"].nunique(),
+)
 
 PLOTLY_TEMPLATE = plotly_template()
 
-
 # ============================================================
-# PATHS
-# ============================================================
-
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
-DATA_PATH = (
-    BASE_DIR
-    / "data"
-    / "processed"
-    / "healthcare_cleaned.csv"
-)
-
-
-# ============================================================
-# LOAD DATA
+# HEADER
 # ============================================================
 
-@st.cache_data
-def load_data():
-
-    return pd.read_csv(DATA_PATH)
-
-
-df = load_data()
-
-
-# ============================================================
-# PAGE HEADER
-# ============================================================
-
-st.title("📊 Hospital Analytics Dashboard")
-
+st.title("📊 Hospital Analytics & Clinical Intelligence")
 st.write(
-    """
-    Explore hospital records through interactive charts,
-    healthcare KPIs and patient analytics.
-    """
+    "Interactive analytics exploring patient demographics, clinical biomarkers, hospital operations, and treatment outcomes."
 )
 
 st.divider()
-
 
 # ============================================================
 # SIDEBAR FILTERS
 # ============================================================
 
-st.sidebar.header("🔎 Dashboard Filters")
+st.sidebar.markdown("### 🔎 Filter Patients")
 
+if st.sidebar.button("🔄 Reset Filters", use_container_width=True):
+    st.session_state.filter_gender = "All"
+    st.session_state.filter_diagnosis = "All"
+    st.session_state.filter_outcome = "All"
+    st.session_state.filter_age = (int(df["Age"].min()), int(df["Age"].max()))
+    st.rerun()
 
-gender_options = (
-    ["All"]
-    + sorted(
-        df["Gender"]
-        .dropna()
-        .unique()
-        .tolist()
-    )
+gender_options = ["All"] + sorted(df["Gender"].dropna().unique().tolist())
+diagnosis_options = ["All"] + sorted(df["DiagnosisName"].dropna().unique().tolist())
+outcome_options = ["All"] + sorted(df["OutcomeName"].dropna().unique().tolist())
+
+min_age_val = int(df["Age"].min())
+max_age_val = int(df["Age"].max())
+
+selected_gender = st.sidebar.selectbox("Gender", gender_options, key="filter_gender")
+selected_diagnosis = st.sidebar.selectbox("Diagnosis", diagnosis_options, key="filter_diagnosis")
+selected_outcome = st.sidebar.selectbox("Outcome", outcome_options, key="filter_outcome")
+
+selected_age = st.sidebar.slider(
+    "Age Range",
+    min_value=min_age_val,
+    max_value=max_age_val,
+    value=(min_age_val, max_age_val),
+    key="filter_age",
 )
 
-diagnosis_options = (
-    ["All"]
-    + sorted(
-        df["DiagnosisName"]
-        .dropna()
-        .unique()
-        .tolist()
-    )
-)
-
-outcome_options = (
-    ["All"]
-    + sorted(
-        df["OutcomeName"]
-        .dropna()
-        .unique()
-        .tolist()
-    )
-)
-
-
-gender = st.sidebar.selectbox(
-    "Gender",
-    gender_options
-)
-
-diagnosis = st.sidebar.selectbox(
-    "Diagnosis",
-    diagnosis_options
-)
-
-outcome = st.sidebar.selectbox(
-    "Outcome",
-    outcome_options
-)
-
-
-# ============================================================
-# FILTER DATA
-# ============================================================
-
+# Apply filters
 filtered_df = df.copy()
 
+if selected_gender != "All":
+    filtered_df = filtered_df[filtered_df["Gender"] == selected_gender]
 
-if gender != "All":
+if selected_diagnosis != "All":
+    filtered_df = filtered_df[filtered_df["DiagnosisName"] == selected_diagnosis]
 
-    filtered_df = filtered_df[
-        filtered_df["Gender"] == gender
-    ]
+if selected_outcome != "All":
+    filtered_df = filtered_df[filtered_df["OutcomeName"] == selected_outcome]
 
-
-if diagnosis != "All":
-
-    filtered_df = filtered_df[
-        filtered_df["DiagnosisName"] == diagnosis
-    ]
-
-
-if outcome != "All":
-
-    filtered_df = filtered_df[
-        filtered_df["OutcomeName"] == outcome
-    ]
-
-
-# ============================================================
-# EMPTY DATA CHECK
-# ============================================================
-
-if filtered_df.empty:
-
-    st.warning(
-        "No patients match the selected filters."
-    )
-
-    st.stop()
-
-
-# ============================================================
-# EXECUTIVE SUMMARY
-# ============================================================
-
-st.markdown(
-    "## 📈 Executive Summary"
-)
-
-
-total_patients = len(
-    filtered_df
-)
-
-
-average_age = round(
-    filtered_df["Age"].mean(),
-    1
-)
-
-
-average_cost = int(
-    filtered_df["TreatmentCost"].mean()
-)
-
-
-recovery_rate = round(
-    (
-        filtered_df["OutcomeName"]
-        == "Recovered"
-    ).mean() * 100,
-    1
-)
-
-
-col1, col2, col3, col4 = st.columns(4)
-
-
-with col1:
-
-    st.metric(
-        "👨‍⚕️ Patients",
-        f"{total_patients:,}"
-    )
-
-
-with col2:
-
-    st.metric(
-        "🎂 Average Age",
-        average_age
-    )
-
-
-with col3:
-
-    st.metric(
-        "💰 Average Treatment Cost",
-        f"₹ {average_cost:,}"
-    )
-
-
-with col4:
-
-    st.metric(
-        "✅ Recovery Rate",
-        f"{recovery_rate}%"
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# PATIENT DEMOGRAPHICS
-# ============================================================
-
-st.markdown(
-    "## 👨‍⚕️ Patient Demographics"
-)
-
-
-left_chart, right_chart = st.columns(2)
-
-
-# ============================================================
-# AGE DISTRIBUTION
-# ============================================================
-
-with left_chart:
-
-    st.subheader(
-        "📈 Age Distribution"
-    )
-
-    fig = px.histogram(
-        filtered_df,
-        x="Age",
-        nbins=15,
-        color_discrete_sequence=[
-            "#3B82F6"
-        ]
-    )
-
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        height=420,
-        xaxis_title="Age",
-        yaxis_title="Patients"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-# ============================================================
-# GENDER DISTRIBUTION
-# ============================================================
-
-with right_chart:
-
-    st.subheader(
-        "👥 Gender Distribution"
-    )
-
-    gender_df = (
-        filtered_df["Gender"]
-        .value_counts()
-        .reset_index()
-    )
-
-    gender_df.columns = [
-        "Gender",
-        "Patients"
-    ]
-
-    fig = px.pie(
-        gender_df,
-        names="Gender",
-        values="Patients",
-        hole=0.55,
-        color_discrete_sequence=(
-            px.colors.qualitative.Set2
-        )
-    )
-
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        height=420
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# CLINICAL ANALYTICS
-# ============================================================
-
-st.markdown(
-    "## 🏥 Clinical Analytics"
-)
-
-
-left_chart, right_chart = st.columns(2)
-
-
-# ============================================================
-# OUTCOME DISTRIBUTION
-# ============================================================
-
-with left_chart:
-
-    st.subheader(
-        "📊 Patient Outcome Distribution"
-    )
-
-    outcome_df = (
-        filtered_df["OutcomeName"]
-        .value_counts()
-        .reset_index()
-    )
-
-    outcome_df.columns = [
-        "Outcome",
-        "Patients"
-    ]
-
-    fig = px.bar(
-        outcome_df,
-        x="Outcome",
-        y="Patients",
-        color="Outcome",
-        text="Patients",
-        color_discrete_sequence=(
-            px.colors.qualitative.Bold
-        )
-    )
-
-    fig.update_traces(
-        textposition="outside"
-    )
-
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        height=420,
-        showlegend=False,
-        xaxis_title="Outcome",
-        yaxis_title="Patients"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-# ============================================================
-# DIAGNOSIS DISTRIBUTION
-# ============================================================
-
-with right_chart:
-
-    st.subheader(
-        "🩺 Diagnosis Distribution"
-    )
-
-    diagnosis_df = (
-        filtered_df["DiagnosisName"]
-        .value_counts()
-        .reset_index()
-    )
-
-    diagnosis_df.columns = [
-        "Diagnosis",
-        "Patients"
-    ]
-
-    fig = px.bar(
-        diagnosis_df,
-        x="Patients",
-        y="Diagnosis",
-        orientation="h",
-        color="Patients",
-        text="Patients",
-        color_continuous_scale="Blues"
-    )
-
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        height=420,
-        yaxis_title="",
-        xaxis_title="Patients"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# CLINICAL MEASUREMENTS
-# ============================================================
-
-st.markdown(
-    "## 🧪 Clinical Measurements"
-)
-
-
-measurement_cols = st.columns(4)
-
-
-measurements = [
-    (
-        "Blood Pressure",
-        "Blood Pressure",
-        "mmHg"
-    ),
-    (
-        "Blood Sugar",
-        "Blood Sugar",
-        "mg/dL"
-    ),
-    (
-        "Cholesterol",
-        "Cholesterol",
-        "mg/dL"
-    ),
-    (
-        "Creatinine",
-        "Creatinine",
-        "mg/dL"
-    )
+filtered_df = filtered_df[
+    (filtered_df["Age"] >= selected_age[0]) & (filtered_df["Age"] <= selected_age[1])
 ]
 
+if filtered_df.empty:
+    st.warning("⚠️ No patient records match the selected filter combination. Try resetting the filters.")
+    st.stop()
 
-for column, (
-    label,
-    field,
-    unit
-) in zip(
-    measurement_cols,
-    measurements
-):
+# ============================================================
+# EXECUTIVE SUMMARY KPIS
+# ============================================================
 
-    with column:
+total_filtered = len(filtered_df)
+avg_age = round(filtered_df["Age"].mean(), 1)
+avg_cost = int(filtered_df["TreatmentCost"].mean())
+avg_stay = round(filtered_df["LengthOfStay"].mean(), 1)
+recovery_pct = round((filtered_df["OutcomeName"] == "Recovered").mean() * 100, 1)
 
-        value = filtered_df[field].mean()
+k1, k2, k3, k4, k5 = st.columns(5)
 
-        st.metric(
-            label,
-            f"{value:.2f}",
-            unit
-        )
+with k1:
+    st.metric("Total Patients", f"{total_filtered:,}", delta=f"{round(total_filtered/len(df)*100, 1)}% of total")
 
+with k2:
+    st.metric("Average Age", f"{avg_age} Yrs")
 
-measurement_cols_2 = st.columns(2)
+with k3:
+    st.metric("Avg Treatment Cost", f"₹ {avg_cost:,}")
 
+with k4:
+    st.metric("Avg Length of Stay", f"{avg_stay} Days")
 
-with measurement_cols_2[0]:
-
-    st.metric(
-        "Hemoglobin",
-        f"{filtered_df['Hemoglobin'].mean():.2f}",
-        "g/dL"
-    )
-
-
-with measurement_cols_2[1]:
-
-    st.metric(
-        "Vitamin D",
-        f"{filtered_df['Vitamin D'].mean():.2f}",
-        "ng/mL"
-    )
-
+with k5:
+    st.metric("Recovery Rate", f"{recovery_pct}%")
 
 st.divider()
 
-
 # ============================================================
-# FINANCIAL ANALYTICS
+# TABS NAVIGATION
 # ============================================================
 
-st.markdown(
-    "## 💰 Financial Analytics"
+tab1, tab2, tab3, tab4 = st.tabs(
+    [
+        "📈 Demographics & Outcomes",
+        "🧪 Clinical Biomarkers & Correlations",
+        "💰 Financial & Operational Analytics",
+        "🔍 Patient Records Explorer",
+    ]
 )
 
-
-left_chart, right_chart = st.columns(2)
-
-
 # ============================================================
-# TREATMENT COST
+# TAB 1: DEMOGRAPHICS & OUTCOMES
 # ============================================================
 
-with left_chart:
+with tab1:
+    st.markdown("### 👨‍⚕️ Patient Demographics & Outcome Distributions")
 
-    st.subheader(
-        "💰 Average Treatment Cost by Diagnosis"
-    )
+    c1, c2 = st.columns(2)
 
-    cost_df = (
-        filtered_df
-        .groupby("DiagnosisName")["TreatmentCost"]
-        .mean()
-        .round(0)
-        .reset_index()
-        .sort_values(
-            by="TreatmentCost",
-            ascending=False
+    with c1:
+        st.subheader("Age Distribution")
+        fig_age = px.histogram(
+            filtered_df,
+            x="Age",
+            nbins=20,
+            color="OutcomeName",
+            color_discrete_map={
+                "Recovered": "#10b981",
+                "Complicated": "#f59e0b",
+                "Deceased": "#ef4444",
+            },
+            marginal="box",
         )
-    )
-
-    fig = px.bar(
-        cost_df,
-        x="DiagnosisName",
-        y="TreatmentCost",
-        color="TreatmentCost",
-        text="TreatmentCost",
-        color_continuous_scale="Blues"
-    )
-
-    fig.update_traces(
-        texttemplate="₹%{text:.0f}",
-        textposition="outside"
-    )
-
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        height=450,
-        xaxis_title="Diagnosis",
-        yaxis_title="Average Cost (₹)",
-        coloraxis_showscale=False
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-# ============================================================
-# LENGTH OF STAY
-# ============================================================
-
-with right_chart:
-
-    st.subheader(
-        "🏥 Average Length of Stay"
-    )
-
-    stay_df = (
-        filtered_df
-        .groupby("DiagnosisName")["LengthOfStay"]
-        .mean()
-        .round(1)
-        .reset_index()
-        .sort_values(
-            by="LengthOfStay",
-            ascending=False
+        fig_age.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=430,
+            xaxis_title="Age (Years)",
+            yaxis_title="Patient Count",
+            legend_title="Outcome",
         )
-    )
+        st.plotly_chart(fig_age, use_container_width=True)
 
-    fig = px.bar(
-        stay_df,
-        x="DiagnosisName",
-        y="LengthOfStay",
-        color="LengthOfStay",
-        text="LengthOfStay",
-        color_continuous_scale="Teal"
-    )
+    with c2:
+        st.subheader("Gender Breakdown")
+        gender_agg = filtered_df["Gender"].value_counts().reset_index()
+        gender_agg.columns = ["Gender", "Count"]
+        fig_gender = px.pie(
+            gender_agg,
+            names="Gender",
+            values="Count",
+            hole=0.55,
+            color_discrete_sequence=["#38bdf8", "#ec4899"],
+        )
+        fig_gender.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=430,
+        )
+        st.plotly_chart(fig_gender, use_container_width=True)
 
-    fig.update_traces(
-        texttemplate="%{text} Days",
-        textposition="outside"
-    )
+    st.markdown("---")
 
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        height=450,
-        xaxis_title="Diagnosis",
-        yaxis_title="Days",
-        coloraxis_showscale=False
-    )
+    c3, c4 = st.columns(2)
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    with c3:
+        st.subheader("Clinical Outcome Distribution")
+        outcome_agg = filtered_df["OutcomeName"].value_counts().reset_index()
+        outcome_agg.columns = ["Outcome", "Patients"]
+        fig_outcome = px.bar(
+            outcome_agg,
+            x="Outcome",
+            y="Patients",
+            color="Outcome",
+            text="Patients",
+            color_discrete_map={
+                "Recovered": "#10b981",
+                "Complicated": "#f59e0b",
+                "Deceased": "#ef4444",
+            },
+        )
+        fig_outcome.update_traces(textposition="outside")
+        fig_outcome.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=420,
+            showlegend=False,
+            xaxis_title="Clinical Outcome",
+            yaxis_title="Patients",
+        )
+        st.plotly_chart(fig_outcome, use_container_width=True)
 
-
-st.divider()
+    with c4:
+        st.subheader("Diagnosis Prevalence")
+        diag_agg = filtered_df["DiagnosisName"].value_counts().reset_index()
+        diag_agg.columns = ["Diagnosis", "Patients"]
+        fig_diag = px.bar(
+            diag_agg.sort_values(by="Patients"),
+            x="Patients",
+            y="Diagnosis",
+            orientation="h",
+            color="Patients",
+            text="Patients",
+            color_continuous_scale="Viridis",
+        )
+        fig_diag.update_traces(textposition="outside")
+        fig_diag.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=420,
+            xaxis_title="Patient Volume",
+            yaxis_title="",
+            coloraxis_showscale=False,
+        )
+        st.plotly_chart(fig_diag, use_container_width=True)
 
 
 # ============================================================
-# OUTCOME BY DIAGNOSIS
+# TAB 2: CLINICAL BIOMARKERS & CORRELATIONS
 # ============================================================
 
-st.markdown(
-    "## 🩺 Outcome by Diagnosis"
-)
+with tab2:
+    st.markdown("### 🧪 Clinical Biomarker Profiling & Correlation Heatmap")
 
+    # Metrics Row
+    m_col1, m_col2, m_col3, m_col4, m_col5, m_col6 = st.columns(6)
+    with m_col1:
+        st.metric("Blood Pressure", f"{filtered_df['Blood Pressure'].mean():.1f}", "mmHg")
+    with m_col2:
+        st.metric("Blood Sugar", f"{filtered_df['Blood Sugar'].mean():.1f}", "mg/dL")
+    with m_col3:
+        st.metric("Cholesterol", f"{filtered_df['Cholesterol'].mean():.1f}", "mg/dL")
+    with m_col4:
+        st.metric("Creatinine", f"{filtered_df['Creatinine'].mean():.2f}", "mg/dL")
+    with m_col5:
+        st.metric("Hemoglobin", f"{filtered_df['Hemoglobin'].mean():.2f}", "g/dL")
+    with m_col6:
+        st.metric("Vitamin D", f"{filtered_df['Vitamin D'].mean():.1f}", "ng/mL")
 
-outcome_diagnosis_df = (
-    filtered_df
-    .groupby(
-        [
-            "DiagnosisName",
-            "OutcomeName"
+    st.markdown("---")
+
+    bio_c1, bio_c2 = st.columns(2)
+
+    with bio_c1:
+        st.subheader("Biomarker Correlation Matrix")
+        numeric_cols = [
+            "Age",
+            "Blood Pressure",
+            "Blood Sugar",
+            "Cholesterol",
+            "Creatinine",
+            "Hemoglobin",
+            "Vitamin D",
+            "LengthOfStay",
+            "TreatmentCost",
         ]
+        corr_matrix = filtered_df[numeric_cols].corr().round(2)
+
+        fig_corr = px.imshow(
+            corr_matrix,
+            text_auto=True,
+            aspect="auto",
+            color_continuous_scale="RdBu_r",
+            zmin=-1,
+            zmax=1,
+        )
+        fig_corr.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=460,
+            xaxis_title="",
+            yaxis_title="",
+        )
+        st.plotly_chart(fig_corr, use_container_width=True)
+
+    with bio_c2:
+        st.subheader("Biomarker Levels by Patient Outcome")
+        selected_biomarker = st.selectbox(
+            "Select Biomarker to Inspect:",
+            [
+                "Blood Pressure",
+                "Blood Sugar",
+                "Cholesterol",
+                "Creatinine",
+                "Hemoglobin",
+                "Vitamin D",
+                "Age",
+            ],
+        )
+
+        fig_box = px.box(
+            filtered_df,
+            x="OutcomeName",
+            y=selected_biomarker,
+            color="OutcomeName",
+            points="outliers",
+            color_discrete_map={
+                "Recovered": "#10b981",
+                "Complicated": "#f59e0b",
+                "Deceased": "#ef4444",
+            },
+        )
+        fig_box.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=460,
+            showlegend=False,
+            xaxis_title="Patient Outcome",
+            yaxis_title=selected_biomarker,
+        )
+        st.plotly_chart(fig_box, use_container_width=True)
+
+
+# ============================================================
+# TAB 3: FINANCIAL & OPERATIONAL ANALYTICS
+# ============================================================
+
+with tab3:
+    st.markdown("### 💰 Financial Economics & Hospital Operations")
+
+    fin_c1, fin_c2 = st.columns(2)
+
+    with fin_c1:
+        st.subheader("Treatment Cost by Diagnosis")
+        cost_df = (
+            filtered_df.groupby("DiagnosisName")["TreatmentCost"]
+            .mean()
+            .round(0)
+            .reset_index()
+            .sort_values(by="TreatmentCost", ascending=False)
+        )
+
+        fig_cost = px.bar(
+            cost_df,
+            x="DiagnosisName",
+            y="TreatmentCost",
+            color="TreatmentCost",
+            text="TreatmentCost",
+            color_continuous_scale="Purples",
+        )
+        fig_cost.update_traces(texttemplate="₹%{text:,.0f}", textposition="outside")
+        fig_cost.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=440,
+            xaxis_title="Diagnosis",
+            yaxis_title="Average Treatment Cost (₹)",
+            coloraxis_showscale=False,
+        )
+        st.plotly_chart(fig_cost, use_container_width=True)
+
+    with fin_c2:
+        st.subheader("Inpatient Length of Stay (Days) by Diagnosis")
+        stay_df = (
+            filtered_df.groupby("DiagnosisName")["LengthOfStay"]
+            .mean()
+            .round(1)
+            .reset_index()
+            .sort_values(by="LengthOfStay", ascending=False)
+        )
+
+        fig_stay = px.bar(
+            stay_df,
+            x="DiagnosisName",
+            y="LengthOfStay",
+            color="LengthOfStay",
+            text="LengthOfStay",
+            color_continuous_scale="Teal",
+        )
+        fig_stay.update_traces(texttemplate="%{text} Days", textposition="outside")
+        fig_stay.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=440,
+            xaxis_title="Diagnosis",
+            yaxis_title="Length of Stay (Days)",
+            coloraxis_showscale=False,
+        )
+        st.plotly_chart(fig_stay, use_container_width=True)
+
+    st.markdown("---")
+
+    st.subheader("Treatment Cost vs. Length of Stay by Outcome")
+    fig_scatter = px.scatter(
+        filtered_df,
+        x="LengthOfStay",
+        y="TreatmentCost",
+        color="OutcomeName",
+        size="Age",
+        hover_data=["Name", "DiagnosisName", "Blood Pressure", "Blood Sugar"],
+        color_discrete_map={
+            "Recovered": "#10b981",
+            "Complicated": "#f59e0b",
+            "Deceased": "#ef4444",
+        },
+        trendline="ols",
     )
-    .size()
-    .reset_index(
-        name="Patients"
+    fig_scatter.update_layout(
+        template=PLOTLY_TEMPLATE,
+        height=480,
+        xaxis_title="Length of Stay (Days)",
+        yaxis_title="Treatment Cost (₹)",
+        legend_title="Outcome",
     )
-)
+    st.plotly_chart(fig_scatter, use_container_width=True)
 
 
-fig = px.bar(
-    outcome_diagnosis_df,
-    x="DiagnosisName",
-    y="Patients",
-    color="OutcomeName",
-    barmode="group",
-    text="Patients"
-)
+# ============================================================
+# TAB 4: PATIENT RECORDS EXPLORER
+# ============================================================
 
-fig.update_layout(
-    template=PLOTLY_TEMPLATE,
-    height=500,
-    xaxis_title="Diagnosis",
-    yaxis_title="Patients",
-    legend_title="Outcome"
-)
+with tab4:
+    st.markdown("### 🔍 Inpatient Records & Data Table Explorer")
 
-fig.update_traces(
-    textposition="outside"
-)
+    search_query = st.text_input("🔍 Search by Patient Name or ID:", placeholder="e.g., Aarav or 105")
 
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
+    display_table_df = filtered_df.copy()
+    if search_query:
+        display_table_df = display_table_df[
+            display_table_df["Name"].astype(str).str.contains(search_query, case=False, na=False)
+            | display_table_df["PatientID"].astype(str).str.contains(search_query, case=False, na=False)
+        ]
 
+    st.write(f"Showing **{len(display_table_df):,}** matching patient records:")
+
+    st.dataframe(
+        display_table_df,
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    # CSV Download Button
+    csv_data = display_table_df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="📥 Download Filtered Patient Records (CSV)",
+        data=csv_data,
+        file_name="hospital_filtered_patients.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
 
 st.divider()
-
-
-# ============================================================
-# BUSINESS INSIGHTS
-# ============================================================
-
-st.markdown(
-    "## 💡 Business Insights"
-)
-
-
-left, right = st.columns(2)
-
-
-# ============================================================
-# FINANCIAL INSIGHTS
-# ============================================================
-
-with left:
-
-    cost_by_diagnosis = (
-        filtered_df
-        .groupby("DiagnosisName")["TreatmentCost"]
-        .mean()
-    )
-
-    stay_by_diagnosis = (
-        filtered_df
-        .groupby("DiagnosisName")["LengthOfStay"]
-        .mean()
-    )
-
-    highest_cost = (
-        cost_by_diagnosis.idxmax()
-    )
-
-    highest_cost_value = (
-        cost_by_diagnosis.max()
-    )
-
-    longest_stay = (
-        stay_by_diagnosis.idxmax()
-    )
-
-    longest_days = (
-        stay_by_diagnosis.max()
-    )
-
-    st.info(
-        f"""
-        ### 💰 Financial Insights
-
-        **Highest Average Treatment Cost**
-
-        🏥 {highest_cost}
-
-        ₹ {highest_cost_value:,.0f}
-
-        ---
-
-        **Longest Average Stay**
-
-        🏥 {longest_stay}
-
-        🛏 {longest_days:.1f} Days
-        """
-    )
-
-
-# ============================================================
-# CLINICAL INSIGHTS
-# ============================================================
-
-with right:
-
-    diagnosis_counts = (
-        filtered_df["DiagnosisName"]
-        .value_counts()
-    )
-
-    most_common = (
-        diagnosis_counts.idxmax()
-    )
-
-    patient_count = (
-        diagnosis_counts.max()
-    )
-
-    recovery = (
-        (
-            filtered_df["OutcomeName"]
-            == "Recovered"
-        ).mean() * 100
-    )
-
-    st.success(
-        f"""
-        ### 📈 Clinical Insights
-
-        **Most Common Diagnosis**
-
-        🩺 {most_common}
-
-        👨‍⚕️ {patient_count} Patients
-
-        ---
-
-        **Recovery Rate**
-
-        ✅ {recovery:.1f}%
-        """
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# DATASET INFORMATION
-# ============================================================
-
-st.markdown(
-    "## 📋 Dataset Information"
-)
-
-
-info1, info2, info3 = st.columns(3)
-
-
-with info1:
-
-    st.metric(
-        "Total Dataset Records",
-        f"{len(df):,}"
-    )
-
-
-with info2:
-
-    st.metric(
-        "Filtered Records",
-        f"{len(filtered_df):,}"
-    )
-
-
-with info3:
-
-    st.metric(
-        "Dataset Features",
-        len(df.columns)
-    )
-
-
-st.divider()
-
 
 # ============================================================
 # FOOTER
 # ============================================================
 
-st.html("""
-<div style="
-    margin-top: 50px;
-    padding: 30px 20px 25px 20px;
-    text-align: center;
-    border-top: 1px solid rgba(128, 128, 128, 0.25);
-">
-
-    <div style="
-        font-size: 20px;
-        font-weight: 700;
-        margin-bottom: 10px;
-    ">
-        🏥 Hospital Patient Analytics
+st.html(
+    """
+    <div style="text-align:center; padding:15px 0 5px 0; color:var(--text-muted); font-size:12px;">
+        Hospital Patient Analytics • Comprehensive Dashboard • Ayush &amp; Moon
     </div>
-
-    <div style="
-        font-size: 14px;
-        margin-bottom: 8px;
-        opacity: 0.8;
-    ">
-        Developed using
-        <strong>Python • Pandas • Plotly • Streamlit • Scikit-Learn</strong>
-    </div>
-
-    <div style="
-        font-size: 13px;
-        margin-bottom: 10px;
-        opacity: 0.65;
-    ">
-        Healthcare Data Analytics & Machine Learning Project
-    </div>
-
-    <div style="
-        font-size: 14px;
-        font-weight: 600;
-        opacity: 0.9;
-    ">
-        Developed by Ayush & Moon
-    </div>
-
-    <div style="
-        font-size: 12px;
-        margin-top: 10px;
-        opacity: 0.5;
-    ">
-        Version 1.0
-    </div>
-
-</div>
-""")
+    """
+)

@@ -1,848 +1,358 @@
+"""
+Machine Learning Model Performance & Benchmark Suite
+Detailed evaluation of the Random Forest champion model and multi-algorithm benchmarking.
+"""
+
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
+import streamlit as st
 from PIL import Image
 
-import streamlit as st
-
-
 # ============================================================
-# PAGE CONFIG
+# PAGE CONFIG & THEME
 # ============================================================
+
+APP_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(APP_DIR))
+
+from utils.theme import (
+    apply_theme,
+    get_model_comparison,
+    get_model_metadata,
+    load_dataset,
+    plotly_template,
+    render_sidebar,
+)
 
 st.set_page_config(
-    page_title="Model Performance",
+    page_title="Model Performance & Benchmarks",
     page_icon="📈",
-    layout="wide"
+    layout="wide",
 )
-
-
-# ============================================================
-# THEME
-# ============================================================
-
-sys.path.append(
-    str(Path(__file__).resolve().parent.parent)
-)
-
-from utils.theme import apply_theme, render_sidebar, plotly_template
 
 apply_theme()
 
+BASE_DIR = APP_DIR.parent
+df = load_dataset()
+meta = get_model_metadata()
+benchmark_df = get_model_comparison()
+
 render_sidebar(
-    total_patients=5000,
-    model_accuracy="83.3%",
-    total_diagnoses=10
+    total_patients=len(df) if not df.empty else meta.get("dataset_total", 5000),
+    model_accuracy=meta.get("accuracy_pct", "83.30%"),
+    total_diagnoses=df["DiagnosisName"].nunique() if not df.empty else 10,
 )
+
 PLOTLY_TEMPLATE = plotly_template()
-
-
-# ============================================================
-# PATHS
-# ============================================================
-
-BASE_DIR = (
-    Path(__file__)
-    .resolve()
-    .parent
-    .parent
-    .parent
-)
-
-REPORT_PATH = (
-    BASE_DIR
-    / "models"
-    / "classification_report.txt"
-)
-
-CONFUSION_MATRIX_PATH = (
-    BASE_DIR
-    / "models"
-    / "confusion_matrix.png"
-)
-
-FEATURE_IMPORTANCE_PATH = (
-    BASE_DIR
-    / "models"
-    / "feature_importance.csv"
-)
-
-FEATURE_IMPORTANCE_IMAGE = (
-    BASE_DIR
-    / "models"
-    / "feature_importance.png"
-)
-
-
-# ============================================================
-# MODEL INFORMATION
-# ============================================================
-
-MODEL_NAME = "Random Forest"
-MODEL_ACCURACY = 0.833
-MODEL_ACCURACY_PERCENT = "83.3%"
-DATASET_SIZE = 5000
-TEST_SIZE = 1000
-OUTCOME_CLASSES = 3
-
 
 # ============================================================
 # HEADER
 # ============================================================
 
-left, right = st.columns(
-    [3, 1]
-)
+head1, head2 = st.columns([3, 1])
 
-
-with left:
-
-    st.title(
-        "📈 Machine Learning Model Performance"
-    )
-
-    st.subheader(
-        "Model Evaluation & Performance Analytics"
-    )
-
+with head1:
+    st.title("📈 Machine Learning Performance & Benchmarks")
     st.write(
-        """
-        Evaluate the trained Random Forest model using
-        performance metrics, confusion matrix,
-        classification report and feature importance.
-        """
+        "Comprehensive validation analytics, per-class classification metrics, interactive confusion matrix, feature importances, and multi-model benchmark evaluation."
     )
 
-
-with right:
-
+with head2:
     st.success(
-        """
-        ### 🟢 Best Model
-
-        **Random Forest**
-
-        **Accuracy**
-
-        **83.3%**
-
-        **Status**
-
-        Ready
+        f"""
+        ### 🟢 Champion Model
+        **{meta.get('model_name', 'Random Forest')}**
+        
+        **Test Accuracy:** **{meta.get('accuracy_pct', '83.30%')}**
+        
+        **F1 Macro:** **{meta.get('macro_avg', {}).get('f1_score', 0.7431):.4f}**
         """
     )
-
 
 st.divider()
 
-
 # ============================================================
-# EXECUTIVE SUMMARY
-# ============================================================
-
-st.markdown(
-    "## 📊 Executive Summary"
-)
-
-
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-
-
-with kpi1:
-
-    st.metric(
-        label="🏆 Final Model",
-        value="Random Forest"
-    )
-
-
-with kpi2:
-
-    st.metric(
-        label="🎯 Test Accuracy",
-        value="83.3%"
-    )
-
-
-with kpi3:
-
-    st.metric(
-        label="📊 Test Samples",
-        value=f"{TEST_SIZE:,}"
-    )
-
-
-with kpi4:
-
-    st.metric(
-        label="🏥 Outcome Classes",
-        value=OUTCOME_CLASSES
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# MODEL SUMMARY
+# TABS
 # ============================================================
 
-st.markdown(
-    "## 🏆 Final Model"
-)
-
-
-model_col1, model_col2 = st.columns(2)
-
-
-with model_col1:
-
-    st.info(
-        """
-        ### 🌲 Random Forest Classifier
-
-        The final prediction system uses a Random Forest
-        classification model to predict hospital patient
-        outcomes.
-
-        **Target classes:**
-
-        • Recovered
-
-        • Complicated
-
-        • Deceased
-        """
-    )
-
-
-with model_col2:
-
-    st.success(
-        """
-        ### 📊 Evaluation
-
-        **Accuracy:** 83.3%
-
-        **Training samples:** 4,000
-
-        **Testing samples:** 1,000
-
-        **Train/Test Split:** 80 : 20
-
-        **Evaluation:** Stratified test set
-        """
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# CLASSIFICATION METRICS
-# ============================================================
-
-st.markdown(
-    "## 🎯 Classification Performance"
-)
-
-
-metrics_df = pd.DataFrame(
-    {
-        "Outcome": [
-            "Recovered",
-            "Complicated",
-            "Deceased"
-        ],
-        "Precision": [
-            0.92,
-            0.66,
-            0.70
-        ],
-        "Recall": [
-            0.93,
-            0.68,
-            0.58
-        ],
-        "F1 Score": [
-            0.92,
-            0.67,
-            0.63
-        ]
-    }
-)
-
-
-display_metrics = metrics_df.copy()
-
-display_metrics[
+perf_tab1, perf_tab2, perf_tab3 = st.tabs(
     [
-        "Precision",
-        "Recall",
-        "F1 Score"
+        "🏆 Champion Model Evaluation",
+        "📊 Multi-Algorithm Benchmark",
+        "⚙️ Pipeline Architecture & Parameters",
     ]
-] = (
-    display_metrics[
-        [
-            "Precision",
-            "Recall",
-            "F1 Score"
-        ]
-    ] * 100
-).round(1)
-
-
-display_metrics[
-    [
-        "Precision",
-        "Recall",
-        "F1 Score"
-    ]
-] = display_metrics[
-    [
-        "Precision",
-        "Recall",
-        "F1 Score"
-    ]
-].astype(str) + "%"
-
-
-st.dataframe(
-    display_metrics,
-    use_container_width=True,
-    hide_index=True
 )
+
+# ============================================================
+# TAB 1: CHAMPION MODEL EVALUATION
+# ============================================================
+
+with perf_tab1:
+    st.markdown("### 🏆 Random Forest Classifier Performance")
+
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+
+    with kpi1:
+        st.metric("Test Accuracy", meta.get("accuracy_pct", "83.30%"), delta="Overall Accuracy")
+
+    with kpi2:
+        macro_f1 = meta.get("macro_avg", {}).get("f1_score", 0.7431)
+        st.metric("Macro F1-Score", f"{macro_f1:.4f}", delta="Unweighted Mean")
+
+    with kpi3:
+        weighted_f1 = meta.get("weighted_avg", {}).get("f1_score", 0.8317)
+        st.metric("Weighted F1-Score", f"{weighted_f1:.4f}", delta="Support Weighted")
+
+    with kpi4:
+        st.metric("Test Inpatients", f"{meta.get('test_samples', 1000):,}", delta="20% Stratified Split")
+
+    st.markdown("---")
+
+    # Classification Metrics Table & Chart
+    st.markdown("#### 🎯 Per-Class Precision, Recall & F1-Score")
+
+    class_metrics_data = meta.get("class_metrics", {})
+    if class_metrics_data:
+        metrics_rows = []
+        for outcome_name, scores in class_metrics_data.items():
+            metrics_rows.append(
+                {
+                    "Outcome Class": outcome_name,
+                    "Precision": scores.get("precision", 0.0),
+                    "Recall": scores.get("recall", 0.0),
+                    "F1 Score": scores.get("f1_score", 0.0),
+                    "Test Support": scores.get("support", 0),
+                }
+            )
+        metrics_df = pd.DataFrame(metrics_rows)
+
+        col_tbl, col_chart = st.columns([1, 1])
+
+        with col_tbl:
+            formatted_metrics_df = metrics_df.copy()
+            for c in ["Precision", "Recall", "F1 Score"]:
+                formatted_metrics_df[c] = (formatted_metrics_df[c] * 100).round(2).astype(str) + "%"
+
+            st.dataframe(formatted_metrics_df, use_container_width=True, hide_index=True)
+
+            st.caption(
+                "• **Recovered Class:** Highest precision (91.8%) and recall (92.9%) due to healthy biomarker baselines.\n"
+                "• **Complicated Class:** Balanced F1 score (67.2%) identifying transitioning clinical severity.\n"
+                "• **Deceased Class:** High precision (69.9%) identifying acute renal & cardiovascular risk flags."
+            )
+
+        with col_chart:
+            fig_metrics = px.bar(
+                metrics_df,
+                x="Outcome Class",
+                y=["Precision", "Recall", "F1 Score"],
+                barmode="group",
+                text_auto=".2f",
+                color_discrete_sequence=["#38bdf8", "#818cf8", "#c084fc"],
+            )
+            fig_metrics.update_layout(
+                template=PLOTLY_TEMPLATE,
+                height=340,
+                yaxis_title="Score (0 to 1.0)",
+                xaxis_title="",
+                yaxis_range=[0, 1.05],
+                legend_title="Metric",
+            )
+            st.plotly_chart(fig_metrics, use_container_width=True)
+
+    st.markdown("---")
+
+    # Confusion Matrix (Interactive Heatmap)
+    st.markdown("#### 🎯 Interactive Confusion Matrix")
+
+    cm_data = meta.get("confusion_matrix", {})
+    if cm_data and "matrix" in cm_data:
+        cm_matrix = np.array(cm_data["matrix"])
+        labels = cm_data["labels"]
+
+        fig_cm = px.imshow(
+            cm_matrix,
+            labels=dict(x="Predicted Outcome", y="Actual Outcome", color="Patients"),
+            x=labels,
+            y=labels,
+            text_auto=True,
+            color_continuous_scale="Blues",
+        )
+        fig_cm.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=430,
+            xaxis_title="Predicted Outcome",
+            yaxis_title="Actual Outcome",
+        )
+        st.plotly_chart(fig_cm, use_container_width=True)
+
+    st.markdown("---")
+
+    # Feature Importance Explorer
+    st.markdown("#### 🔍 Feature Importance Explorer")
+
+    feat_path = BASE_DIR / "models" / "feature_importance.csv"
+    if feat_path.exists():
+        feat_df = pd.read_csv(feat_path)
+        # Clean feature names
+        feat_df["Clean_Feature"] = (
+            feat_df["Feature"]
+            .str.replace("numerical__", "", regex=False)
+            .str.replace("categorical__Gender_", "Gender: ", regex=False)
+            .str.replace("categorical__DiagnosisID_", "Diagnosis ID: ", regex=False)
+        )
+
+        top_n = st.slider("Select Top N Features to Display:", min_value=5, max_value=len(feat_df), value=10)
+        display_feat = feat_df.head(top_n).sort_values(by="Importance")
+
+        fig_feat = px.bar(
+            display_feat,
+            x="Importance",
+            y="Clean_Feature",
+            orientation="h",
+            text="Importance",
+            color="Importance",
+            color_continuous_scale="Viridis",
+        )
+        fig_feat.update_traces(texttemplate="%{text:.3f}", textposition="outside")
+        fig_feat.update_layout(
+            template=PLOTLY_TEMPLATE,
+            height=440,
+            xaxis_title="Gini Importance Score",
+            yaxis_title="",
+            coloraxis_showscale=False,
+        )
+        st.plotly_chart(fig_feat, use_container_width=True)
+
+        st.caption(
+            "💡 **Key Finding:** Patient **Age (32.1%)**, **Blood Pressure (12.6%)**, **Hemoglobin (11.7%)**, and **Blood Sugar (10.7%)** are the most influential clinical drivers of outcome severity."
+        )
 
 
 # ============================================================
-# METRIC CHART
+# TAB 2: MULTI-ALGORITHM BENCHMARK
 # ============================================================
 
-fig = px.bar(
-    metrics_df,
-    x="Outcome",
-    y=[
-        "Precision",
-        "Recall",
-        "F1 Score"
-    ],
-    barmode="group",
-    text_auto=".2f"
-)
+with perf_tab2:
+    st.markdown("### 📊 Multi-Algorithm Benchmark Comparison")
+    st.write(
+        "Evaluation of four distinct machine learning classifiers trained and tested on identical stratified 80:20 inpatient splits."
+    )
 
-fig.update_layout(
-    template=PLOTLY_TEMPLATE,
-    height=450,
-    yaxis_title="Score",
-    xaxis_title="Outcome",
-    yaxis_range=[0, 1]
-)
+    if benchmark_df is not None and not benchmark_df.empty:
+        st.dataframe(benchmark_df, use_container_width=True, hide_index=True)
 
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
+        st.markdown("---")
 
+        bench_c1, bench_c2 = st.columns(2)
+
+        with bench_c1:
+            st.subheader("Model Accuracy Comparison")
+            fig_acc = px.bar(
+                benchmark_df,
+                x="Model",
+                y="Accuracy",
+                color="Model",
+                text="Accuracy",
+                color_discrete_sequence=px.colors.qualitative.Set2,
+            )
+            fig_acc.update_traces(texttemplate="%{text:.2%}", textposition="outside")
+            fig_acc.update_layout(
+                template=PLOTLY_TEMPLATE,
+                height=380,
+                showlegend=False,
+                yaxis_range=[0.65, 0.95],
+                yaxis_title="Accuracy",
+                xaxis_title="",
+            )
+            st.plotly_chart(fig_acc, use_container_width=True)
+
+        with bench_c2:
+            st.subheader("Macro F1-Score vs. Training Time")
+            fig_f1 = px.bar(
+                benchmark_df,
+                x="Model",
+                y="F1_Macro",
+                color="Training_Time_Sec",
+                text="F1_Macro",
+                color_continuous_scale="Teal",
+            )
+            fig_f1.update_traces(texttemplate="%{text:.3f}", textposition="outside")
+            fig_f1.update_layout(
+                template=PLOTLY_TEMPLATE,
+                height=380,
+                yaxis_title="Macro F1-Score",
+                xaxis_title="",
+                coloraxis_colorbar=dict(title="Time (s)"),
+            )
+            st.plotly_chart(fig_f1, use_container_width=True)
+
+        st.info(
+            """
+            **Benchmark Summary:**
+            - **Random Forest:** Selected as the production champion model for superior nonlinear robustness, handling mixed lab interactions, and resilient feature scoring.
+            - **Gradient Boosting:** Excellent competitive accuracy (82.90%) with tight decision boundaries.
+            - **Logistic Regression:** Strong linear baseline performance (84.60%) with near-instant training time.
+            - **Decision Tree:** Interpretable baseline with 80.00% accuracy.
+            """
+        )
+    else:
+        st.info("Benchmark data not yet generated. Run `src/train_model3.py` to populate benchmarks.")
+
+
+# ============================================================
+# TAB 3: PIPELINE ARCHITECTURE & PARAMETERS
+# ============================================================
+
+with perf_tab3:
+    st.markdown("### ⚙️ Production Machine Learning Pipeline Architecture")
+
+    p1, p2 = st.columns(2)
+
+    with p1:
+        st.info(
+            """
+            ### 🛠 Data Preprocessing Pipeline
+            - **Numerical Transformer:** `StandardScaler()` applied to 7 clinical features (*Age, Blood Pressure, Blood Sugar, Cholesterol, Creatinine, Hemoglobin, Vitamin D*).
+            - **Categorical Transformer:** `OneHotEncoder(handle_unknown='ignore')` applied to *Gender* and *DiagnosisID*.
+            - **Feature Assembly:** `ColumnTransformer()` maintaining strictly isolated feature paths without data leakage.
+            """
+        )
+
+    with p2:
+        st.success(
+            """
+            ### 🌲 Champion Model Configuration
+            - **Classifier:** `RandomForestClassifier()`
+            - **Estimators (`n_estimators`):** 300 Trees
+            - **Parallelism (`n_jobs`):** -1 (Full multi-core concurrency)
+            - **Train/Test Split:** 80% Train (4,000 samples) : 20% Test (1,000 samples)
+            - **Stratification:** Maintained across 3 target classes
+            """
+        )
+
+    st.markdown("---")
+
+    st.subheader("Raw Classification Report Output")
+    report_file = BASE_DIR / "models" / "classification_report.txt"
+    if report_file.exists():
+        with open(report_file, "r") as f:
+            st.code(f.read(), language="text")
 
 st.divider()
-
-
-# ============================================================
-# CONFUSION MATRIX
-# ============================================================
-
-st.markdown(
-    "## 🎯 Confusion Matrix"
-)
-
-
-try:
-
-    image = Image.open(
-        CONFUSION_MATRIX_PATH
-    )
-
-    st.image(
-        image,
-        use_container_width=True
-    )
-
-except Exception:
-
-    st.warning(
-        "Confusion matrix image could not be loaded."
-    )
-
-
-st.caption(
-    """
-    The confusion matrix shows how the Random Forest model
-    classified the patients across the three outcome classes.
-    """
-)
-
-
-st.divider()
-
-
-# ============================================================
-# CLASSIFICATION REPORT
-# ============================================================
-
-st.markdown(
-    "## 📄 Classification Report"
-)
-
-
-try:
-
-    with open(
-        REPORT_PATH,
-        "r"
-    ) as file:
-
-        report = file.read()
-
-    st.code(
-        report,
-        language="text"
-    )
-
-except Exception:
-
-    st.warning(
-        "Classification report could not be loaded."
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# FEATURE IMPORTANCE
-# ============================================================
-
-st.markdown(
-    "## 🔍 Feature Importance"
-)
-
-
-try:
-
-    feature_df = pd.read_csv(
-        FEATURE_IMPORTANCE_PATH
-    )
-
-    feature_df["Feature"] = (
-        feature_df["Feature"]
-        .str.replace(
-            "numerical__",
-            "",
-            regex=False
-        )
-        .str.replace(
-            "categorical__",
-            "",
-            regex=False
-        )
-        .str.replace(
-            "Gender_",
-            "Gender: ",
-            regex=False
-        )
-        .str.replace(
-            "DiagnosisID_",
-            "Diagnosis ID: ",
-            regex=False
-        )
-    )
-
-    feature_df = (
-        feature_df
-        .sort_values(
-            "Importance",
-            ascending=False
-        )
-        .head(10)
-    )
-
-
-    fig = px.bar(
-        feature_df.sort_values(
-            "Importance"
-        ),
-        x="Importance",
-        y="Feature",
-        orientation="h",
-        text="Importance"
-    )
-
-    fig.update_traces(
-        texttemplate="%{text:.3f}",
-        textposition="outside"
-    )
-
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        height=500,
-        xaxis_title="Importance",
-        yaxis_title="Feature"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-except Exception:
-
-    st.warning(
-        "Feature importance data could not be loaded."
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# MODEL INSIGHTS
-# ============================================================
-
-st.markdown(
-    "## 💡 Model Insights"
-)
-
-
-left, right = st.columns(2)
-
-
-with left:
-
-    st.success(
-        """
-        ### ✅ Strengths
-
-        • 83.3% test accuracy
-
-        • Strong Recovered classification
-
-        • 92% F1 score for Recovered
-
-        • 67% F1 score for Complicated
-
-        • 63% F1 score for Deceased
-
-        • Handles nonlinear relationships
-
-        • Complete preprocessing pipeline
-        """
-    )
-
-
-with right:
-
-    st.warning(
-        """
-        ### ⚠️ Limitations
-
-        • Dataset is synthetic
-
-        • Performance may differ on real hospital data
-
-        • Deceased recall is lower than the other classes
-
-        • External validation is required
-
-        • Model predictions should not replace
-          professional clinical judgment
-        """
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# TRAINING PIPELINE
-# ============================================================
-
-st.markdown(
-    "## ⚙️ Training Pipeline"
-)
-
-
-pipeline_col1, pipeline_col2 = st.columns(2)
-
-
-with pipeline_col1:
-
-    st.info(
-        """
-        ### Data Preparation
-
-        ✔ Data cleaning
-
-        ✔ Missing-value checking
-
-        ✔ Feature selection
-
-        ✔ Categorical encoding
-
-        ✔ Numerical scaling
-
-        ✔ Stratified train/test split
-        """
-    )
-
-
-with pipeline_col2:
-
-    st.success(
-        """
-        ### Model Training
-
-        ✔ Random Forest Classifier
-
-        ✔ 300 estimators
-
-        ✔ Complete preprocessing pipeline
-
-        ✔ Model evaluation
-
-        ✔ Confusion matrix
-
-        ✔ Feature importance analysis
-        """
-    )
-
-
-st.divider()
-
-
-# ============================================================
-# PREDICTION FEATURES
-# ============================================================
-
-st.markdown(
-    "## 🧬 Prediction Features"
-)
-
-
-prediction_features = [
-    "Age",
-    "Gender",
-    "Diagnosis ID",
-    "Blood Pressure",
-    "Blood Sugar",
-    "Cholesterol",
-    "Creatinine",
-    "Hemoglobin",
-    "Vitamin D"
-]
-
-
-feature_columns = st.columns(3)
-
-
-for index, feature in enumerate(
-    prediction_features
-):
-
-    with feature_columns[
-        index % 3
-    ]:
-
-        st.markdown(
-            f"""
-            <div style="
-                padding:12px;
-                margin-bottom:10px;
-                border:1px solid var(--card-border);
-                border-radius:10px;
-                text-align:center;
-            ">
-                <strong>{feature}</strong>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-st.divider()
-
-
-# ============================================================
-# FUTURE IMPROVEMENTS
-# ============================================================
-
-st.markdown(
-    "## 🚀 Future Improvements"
-)
-
-
-col1, col2, col3 = st.columns(3)
-
-
-with col1:
-
-    with st.container(
-        border=True
-    ):
-
-        st.markdown(
-            "### 📊 Data"
-        )
-
-        st.write(
-            "• Larger dataset"
-        )
-
-        st.write(
-            "• Real-world healthcare data"
-        )
-
-        st.write(
-            "• Additional clinical features"
-        )
-
-        st.write(
-            "• External validation"
-        )
-
-
-with col2:
-
-    with st.container(
-        border=True
-    ):
-
-        st.markdown(
-            "### 🤖 Machine Learning"
-        )
-
-        st.write(
-            "• XGBoost comparison"
-        )
-
-        st.write(
-            "• Ensemble methods"
-        )
-
-        st.write(
-            "• Hyperparameter optimization"
-        )
-
-        st.write(
-            "• Explainable AI"
-        )
-
-
-with col3:
-
-    with st.container(
-        border=True
-    ):
-
-        st.markdown(
-            "### ☁ Deployment"
-        )
-
-        st.write(
-            "• REST API"
-        )
-
-        st.write(
-            "• Docker"
-        )
-
-        st.write(
-            "• Cloud deployment"
-        )
-
-        st.write(
-            "• Real-time prediction"
-        )
-
-
-st.divider()
-
-
-# ============================================================
-# DISCLAIMER
-# ============================================================
-
-st.caption(
-    """
-    ⚠️ This project uses synthetic healthcare data and is
-    intended for educational and analytical purposes only.
-    Model predictions must not be used as a substitute for
-    professional medical diagnosis or clinical decision-making.
-    """
-)
-
-
-st.divider()
-
 
 # ============================================================
 # FOOTER
 # ============================================================
 
-st.markdown(
+st.html(
     """
-    <div style="
-        text-align:center;
-        padding:25px 10px 10px 10px;
-        margin-top:20px;
-    ">
-
-        <div style="
-            font-size:20px;
-            font-weight:700;
-            margin-bottom:8px;
-        ">
-            📈 Machine Learning Model Performance
-        </div>
-
-        <div style="
-            font-size:14px;
-            margin-bottom:6px;
-            opacity:0.85;
-        ">
-            Hospital Patient Analytics & Outcome Prediction
-        </div>
-
-        <div style="
-            font-size:13px;
-            margin-bottom:6px;
-            opacity:0.7;
-        ">
-            Developed using
-            <strong>
-                Python • Streamlit • Scikit-Learn • Plotly
-            </strong>
-        </div>
-
-        <div style="
-            font-size:14px;
-            font-weight:600;
-            margin-top:10px;
-        ">
-            Developed by Ayush & Moon
-        </div>
-
-        <div style="
-            font-size:12px;
-            margin-top:8px;
-            opacity:0.5;
-        ">
-            Version 1.0
-        </div>
-
+    <div style="text-align:center; padding:15px 0 5px 0; color:var(--text-muted); font-size:12px;">
+        Hospital Patient Analytics • Model Evaluation &amp; Benchmarking • Ayush &amp; Moon
     </div>
-    """,
-    unsafe_allow_html=True
+    """
 )

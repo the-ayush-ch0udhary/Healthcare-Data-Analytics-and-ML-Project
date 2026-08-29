@@ -1,0 +1,136 @@
+{
+  "model_name": "Random Forest",
+  "accuracy": 0.833,
+  "accuracy_pct": "83.30%",
+  "dataset_total": 5000,
+  "train_samples": 4000,
+  "test_samples": 1000,
+  "classes": [
+    "Complicated",
+    "Deceased",
+    "Recovered"
+  ],
+  "class_metrics": {
+    "Complicated": {
+      "precision": 0.6602,
+      "recall": 0.684,
+      "f1_score": 0.6719,
+      "support": 250
+    },
+    "Deceased": {
+      "precision": 0.6988,
+      "recall": 0.58,
+      "f1_score": 0.6339,
+      "support": 100
+    },
+    "Recovered": {
+      "precision": 0.9179,
+      "recall": 0.9292,
+      "f1_score": 0.9235,
+      "support": 650
+    }
+  },
+  "macro_avg": {
+    "precision": 0.759,
+    "recall": 0.7311,
+    "f1_score": 0.7431
+  },
+  "weighted_avg": {
+    "precision": 0.8316,
+    "recall": 0.833,
+    "f1_score": 0.8317
+  },
+  "confusion_matrix": {
+    "labels": [
+      "Complicated",
+      "Deceased",
+      "Recovered"
+    ],
+    "matrix": [
+      [
+        171,
+        25,
+        54
+      ],
+      [
+        42,
+        58,
+        0
+      ],
+      [
+        46,
+        0,
+        604
+      ]
+    ]
+  },
+  "top_features": [
+    {
+      "Feature": "numerical__Age",
+      "Importance": 0.3215094584095831
+    },
+    {
+      "Feature": "numerical__Blood Pressure",
+      "Importance": 0.12652960751295086
+    },
+    {
+      "Feature": "numerical__Hemoglobin",
+      "Importance": 0.11743961649817658
+    },
+    {
+      "Feature": "numerical__Blood Sugar",
+      "Importance": 0.10743817170563132
+    },
+    {
+      "Feature": "numerical__Creatinine",
+      "Importance": 0.10681722273211197
+    },
+    {
+      "Feature": "numerical__Vitamin D",
+      "Importance": 0.08038863915447478
+    },
+    {
+      "Feature": "numerical__Cholesterol",
+      "Importance": 0.0766081513484477
+    },
+    {
+      "Feature": "categorical__Gender_M",
+      "Importance": 0.00833224168875021
+    },
+    {
+      "Feature": "categorical__Gender_F",
+      "Importance": 0.008301911760415262
+    },
+    {
+      "Feature": "categorical__DiagnosisID_7",
+      "Importance": 0.006515109733286284
+    },
+    {
+      "Feature": "categorical__DiagnosisID_5",
+      "Importance": 0.004927645473335621
+    },
+    {
+      "Feature": "categorical__DiagnosisID_3",
+      "Importance": 0.004904090455391319
+    },
+    {
+      "Feature": "categorical__DiagnosisID_1",
+      "Importance": 0.004867103509266402
+    },
+    {
+      "Feature": "categorical__DiagnosisID_10",
+      "Importance": 0.004591402632033293
+    },
+    {
+      "Feature": "categorical__DiagnosisID_6",
+      "Importance": 0.004575236495328961
+    }
+  ],
+  "trained_timestamp": "2026-08-29 23:11:47",
+  "parameters": {
+    "n_estimators": 300,
+    "random_state": 42,
+    "test_split": 0.2,
+    "features_count": 9
+  }
+}
